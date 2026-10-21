@@ -39,7 +39,7 @@ body:
       required: true
   - type: input
     attributes:
-      label: Version of AyuGram Desktop
+      label: Version of HoursGram Desktop
       description: >
         **Don't use 'latest'**, specify actual version.
     validations:
@@ -49,11 +49,9 @@ body:
       label: Installation source
       multiple: false
       options:
-        - Binary from GitHub / @AyuGramReleases channel
-        - Arch Linux (ayugram-desktop / ayugram-desktop-git)
-        - Arch Linux (ayugram-desktop-bin)
-        - flatpak by 0FL01
-        - Other (unofficial) source
+        - GitHub Actions workflow artifact
+        - Local build from source
+        - Other
     validations:
       required: true
   - type: input

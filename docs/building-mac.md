@@ -17,13 +17,13 @@ Go to ***BuildPath*** and run
 
     sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-    git clone --recursive https://github.com/AyuGram/AyuGramDesktop.git tdesktop
-    ./tdesktop/Telegram/build/prepare/mac.sh
+    git clone --recursive https://github.com/sixseven67123/HoursGram-Desktop.git hoursgram
+    ./hoursgram/Telegram/build/prepare/mac.sh
 
 ### Building the project
 
-Go to ***BuildPath*/tdesktop/Telegram** and run
+Go to ***BuildPath*/hoursgram/Telegram** and run
 
     ./configure.sh -D TDESKTOP_API_ID=2040 -D TDESKTOP_API_HASH=b18441a1ff607e10a989891a5462e627
 
-Then launch Xcode, open ***BuildPath*/tdesktop/out/Telegram.xcodeproj** and build for Debug / Release.
+Then launch Xcode, open ***BuildPath*/hoursgram/out/Telegram.xcodeproj** and build for Debug / Release.

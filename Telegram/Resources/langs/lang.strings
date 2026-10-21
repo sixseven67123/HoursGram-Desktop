@@ -8703,10 +8703,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_DisableGreetingSticker" = "Disable Greeting Sticker";
 "ayu_TranslationProvider" = "Translation Provider";
 "ayu_LinksHeader" = "Links";
-"ayu_LinksChannel" = "Channel";
-"ayu_LinksChats" = "Chats";
-"ayu_LinksTranslate" = "Translate";
-"ayu_LinksDocumentation" = "Documentation";
+"hoursgram_SourceCode" = "Source code";
 "ayu_CategoriesHeader" = "Categories";
 "ayu_SupportHeader" = "Support";
 "ayu_SupportDescription1" = "Support Development";
@@ -8941,9 +8938,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_SuggestGhostModeStoryText" = "Do you want to enable **Ghost Mode** before viewing the story?";
 "ayu_SuggestGhostModeStoryActionTextYes" = "Yes";
 "ayu_SuggestGhostModeStoryActionTextNo" = "No";
-"ayu_FirstLaunchAlert" = "HoursGram is an unofficial client based on **AyuGram Desktop**. You assume **full responsibility** for using this application with your account.";
+"ayu_FirstLaunchAlert" = "HoursGram is an unofficial Telegram client based on AyuGram Desktop. You assume **full responsibility** for using this application with your account.";
 "ayu_LocalPremiumAlert" = "With local Telegram Premium, you won't get increased limits or be able to send animated emojis. Other users won't see your premium emoji and quote color.";
-"ayu_ExteraChatsAlert" = "HoursGram is an unofficial fork. For upstream AyuGram support, use the official **AyuGram** channels.";
+"ayu_ExteraChatsAlert" = "HoursGram is an unofficial Telegram client maintained by the HoursGram project.";
 "ayu_HideNextViewsDescriptionAyu" = "Hide my views forever, until Ghost Mode is disabled.";
 "ayu_EnableGhostModeStories" = "Enable Ghost Mode";
 "ayu_GhostModeIsActive" = "Ghost Mode is Active";
@@ -9024,7 +9021,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_OfficialResourcePopup" = "**{item}** is the official resource of **exteraGram** or **AyuGram**.";
 "ayu_MutualContactInfo" = "This contact is mutual.";
 "ayu_SessionInfoOfficialApp" = "Official app";
-"ayu_SettingsWatermark" = "HoursGram Desktop is an unofficial fork based on AyuGram Desktop.";
+"ayu_SettingsWatermark" = "HoursGram Desktop is an unofficial Telegram client.";
 "ayu_SettingsDescription" = "HoursGram Desktop is a Telegram Desktop fork focused on customization.";
 "ayu_ConfirmationSticker" = "Do you want to send this sticker?";
 "ayu_ConfirmationGIF" = "Do you want to send this GIF?";
@@ -9032,5 +9029,5 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "ayu_ConfirmationRound" = "Do you want to send this round video?";
 "ayu_IntroAbout" = "Welcome to HoursGram Desktop.\nMake Telegram your own.";
 "ayu_AboutText1" = "HoursGram Desktop is based on {api_link}.";
-"ayu_UpdateAyuGram" = "View AyuGram source";
+"ayu_UpdateAyuGram" = "View HoursGram releases";
 "ayu_UtilityRestartRequired" = "The app will close in 5 seconds.";

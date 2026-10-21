@@ -8,18 +8,18 @@ Choose a folder for the future build, for example **/home/user/TBuild**. It will
 
 Install [poetry](https://python-poetry.org), [docker](https://www.docker.com/) and [docker-buildx](https://docs.docker.com/reference/cli/docker/buildx/), go to ***BuildPath*** and run
 
-    git clone --recursive https://github.com/AyuGram/AyuGramDesktop.git tdesktop
-    ./tdesktop/Telegram/build/prepare/linux.sh
+    git clone --recursive https://github.com/sixseven67123/HoursGram-Desktop.git hoursgram
+    ./hoursgram/Telegram/build/prepare/linux.sh
 
 ### Building the project
 
-Go to ***BuildPath*/tdesktop** and run
+Go to ***BuildPath*/hoursgram** and run
 
     docker run --rm -it \
         -u $(id -u) \
-        -v "$PWD:/usr/src/tdesktop" \
+        -v "$PWD:/usr/src/hoursgram" \
         ghcr.io/telegramdesktop/tdesktop/centos_env:latest \
-        /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
+        /usr/src/hoursgram/Telegram/build/docker/centos_env/build.sh \
         -D TDESKTOP_API_ID=2040 \
         -D TDESKTOP_API_HASH=b18441a1ff607e10a989891a5462e627
 
@@ -27,10 +27,10 @@ Or, to create a debug build, run
 
     docker run --rm -it \
         -u $(id -u) \
-        -v "$PWD:/usr/src/tdesktop" \
+        -v "$PWD:/usr/src/hoursgram" \
         -e CONFIG=Debug \
         ghcr.io/telegramdesktop/tdesktop/centos_env:latest \
-        /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
+        /usr/src/hoursgram/Telegram/build/docker/centos_env/build.sh \
         -D TDESKTOP_API_ID=2040 \
         -D TDESKTOP_API_HASH=b18441a1ff607e10a989891a5462e627
 

@@ -392,7 +392,7 @@ MainMenu::MainMenu(
 
 	_telegram->setMarkedText(tr::link(
 			u"HoursGram Desktop"_q,
-			u"https://github.com/AyuGram/AyuGramDesktop"_q));
+			u"https://github.com/sixseven67123/HoursGram-Desktop"_q));
 	_telegram->setLinksTrusted();
 	_version->setMarkedText(
 		tr::link(

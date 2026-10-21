@@ -491,9 +491,9 @@ LastCrashedWindow::LastCrashedWindow(
 	});
 	_saveReport.setText(u"SAVE TO FILE"_q);
 	connect(&_saveReport, &QPushButton::clicked, [=] { saveReport(); });
-	_getApp.setText(u"VIEW UPSTREAM SOURCE"_q);
+	_getApp.setText(u"VIEW HOURSGRAM SOURCE"_q);
 	connect(&_getApp, &QPushButton::clicked, [=] {
-		QDesktopServices::openUrl(u"https://github.com/AyuGram/AyuGramDesktop"_q);
+		QDesktopServices::openUrl(u"https://github.com/sixseven67123/HoursGram-Desktop"_q);
 	});
 
 	_send.setText(u"SEND CRASH REPORT"_q);
