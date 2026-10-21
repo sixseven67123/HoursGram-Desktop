@@ -36,17 +36,29 @@ jobs:
           sdk: 10.0.26100.0
           toolset: '14.44'
 
+      - name: Enlarge page file
+        uses: al-cheb/configure-pagefile-action@v1.4
+        with:
+          minimum-size: 16GB
+          maximum-size: 32GB
+          disk-root: 'D:'
+
       - name: Prepare dependency directories
         shell: pwsh
         run: |
+          # actions/cache rejects paths containing '..', so resolve them to absolute ones once.
           $dependencyRoot = [System.IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '..'))
-          New-Item -ItemType Directory -Force -Path (Join-Path $dependencyRoot 'ThirdParty'), (Join-Path $dependencyRoot 'Libraries\win64') | Out-Null
+          $thirdPartyDir = Join-Path $dependencyRoot 'ThirdParty'
+          $librariesDir = Join-Path $dependencyRoot 'Libraries\win64'
+          New-Item -ItemType Directory -Force -Path $thirdPartyDir, $librariesDir | Out-Null
+          "THIRD_PARTY_DIR=$thirdPartyDir" >> $env:GITHUB_ENV
+          "LIBRARIES_DIR=$librariesDir" >> $env:GITHUB_ENV
 
       - name: Restore third-party build tools
         id: third-party-cache
         uses: actions/cache/restore@v6
         with:
-          path: ${{ github.workspace }}/../ThirdParty
+          path: ${{ env.THIRD_PARTY_DIR }}
           key: ${{ runner.os }}-hoursgram-x64-third-party-v3-restore
           restore-keys: |
             ${{ runner.os }}-hoursgram-x64-third-party-v3-
@@ -55,7 +67,7 @@ jobs:
         id: native-libraries-cache
         uses: actions/cache/restore@v6
         with:
-          path: ${{ github.workspace }}/../Libraries/win64
+          path: ${{ env.LIBRARIES_DIR }}
           key: ${{ runner.os }}-hoursgram-x64-libraries-v3-restore
           restore-keys: |
             ${{ runner.os }}-hoursgram-x64-libraries-v3-
@@ -78,8 +90,8 @@ jobs:
         shell: pwsh
         run: |
           $cacheRoots = @{
-            third_party = [System.IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '..\ThirdParty\cache_keys'))
-            libraries = [System.IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '..\Libraries\win64\cache_keys'))
+            third_party = Join-Path $env:THIRD_PARTY_DIR 'cache_keys'
+            libraries = Join-Path $env:LIBRARIES_DIR 'cache_keys'
           }
 
           foreach ($name in $cacheRoots.Keys) {
@@ -109,7 +121,7 @@ jobs:
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
-          path: ${{ github.workspace }}/../ThirdParty
+          path: ${{ env.THIRD_PARTY_DIR }}
           key: ${{ runner.os }}-hoursgram-x64-third-party-v3-${{ steps.dependency-cache-key.outputs.third_party_hash }}
 
       - name: Save native libraries
@@ -117,7 +129,7 @@ jobs:
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
-          path: ${{ github.workspace }}/../Libraries/win64
+          path: ${{ env.LIBRARIES_DIR }}
           key: ${{ runner.os }}-hoursgram-x64-libraries-v3-${{ steps.dependency-cache-key.outputs.libraries_hash }}
 
       - name: Configure HoursGram
@@ -127,7 +139,7 @@ jobs:
 
       - name: Build HoursGram
         shell: cmd
-        run: cmake --build out --config Release --target Telegram --parallel 4 -- /p:UseStructuredOutput=false
+        run: cmake --build out --config Release --target Telegram --parallel 4 -- /p:CL_MPCount=3
 
       - name: Upload Windows build
         uses: actions/upload-artifact@v7
