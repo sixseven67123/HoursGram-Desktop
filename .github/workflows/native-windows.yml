@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: windows-build-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -38,25 +38,27 @@ jobs:
 
       - name: Prepare dependency directories
         shell: pwsh
-        run: New-Item -ItemType Directory -Force -Path ThirdParty, Libraries\win64 | Out-Null
+        run: |
+          $dependencyRoot = [System.IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '..'))
+          New-Item -ItemType Directory -Force -Path (Join-Path $dependencyRoot 'ThirdParty'), (Join-Path $dependencyRoot 'Libraries\win64') | Out-Null
 
       - name: Restore third-party build tools
         id: third-party-cache
         uses: actions/cache/restore@v6
         with:
-          path: ThirdParty
-          key: ${{ runner.os }}-x64-third-party-${{ hashFiles('Telegram/build/prepare/prepare.py') }}-initial
+          path: ${{ github.workspace }}/../ThirdParty
+          key: ${{ runner.os }}-hoursgram-x64-third-party-v3-restore
           restore-keys: |
-            ${{ runner.os }}-x64-third-party-${{ hashFiles('Telegram/build/prepare/prepare.py') }}
+            ${{ runner.os }}-hoursgram-x64-third-party-v3-
 
       - name: Restore native libraries
         id: native-libraries-cache
         uses: actions/cache/restore@v6
         with:
-          path: Libraries/win64
-          key: ${{ runner.os }}-x64-libraries-${{ hashFiles('Telegram/build/prepare/prepare.py') }}-initial
+          path: ${{ github.workspace }}/../Libraries/win64
+          key: ${{ runner.os }}-hoursgram-x64-libraries-v3-restore
           restore-keys: |
-            ${{ runner.os }}-x64-libraries-${{ hashFiles('Telegram/build/prepare/prepare.py') }}
+            ${{ runner.os }}-hoursgram-x64-libraries-v3-
 
       - name: Configure NuGet sources
         shell: cmd
@@ -70,19 +72,53 @@ jobs:
         shell: cmd
         run: Telegram\build\prepare\win.bat silent
 
+      - name: Fingerprint prepared dependency state
+        id: dependency-cache-key
+        if: always()
+        shell: pwsh
+        run: |
+          $cacheRoots = @{
+            third_party = [System.IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '..\ThirdParty\cache_keys'))
+            libraries = [System.IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE '..\Libraries\win64\cache_keys'))
+          }
+
+          foreach ($name in $cacheRoots.Keys) {
+            $cacheRoot = $cacheRoots[$name]
+            $files = @()
+            if (Test-Path -LiteralPath $cacheRoot) {
+              $files = @(Get-ChildItem -LiteralPath $cacheRoot -File -Recurse | Sort-Object FullName)
+            }
+
+            $fingerprint = 'empty'
+            if ($files.Count -gt 0) {
+              $manifest = foreach ($file in $files) {
+                $relativePath = [System.IO.Path]::GetRelativePath($cacheRoot, $file.FullName).Replace('\', '/')
+                "$relativePath=$([System.IO.File]::ReadAllText($file.FullName))"
+              }
+              $manifestPath = Join-Path $env:RUNNER_TEMP "hoursgram-$name-cache-manifest.txt"
+              [System.IO.File]::WriteAllText($manifestPath, (($manifest -join "`n") + "`n"), [System.Text.UTF8Encoding]::new($false))
+              $fingerprint = (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+
+            "${name}_hash=$fingerprint" >> $env:GITHUB_OUTPUT
+            "${name}_count=$($files.Count)" >> $env:GITHUB_OUTPUT
+          }
+
       - name: Save third-party build tools
-        if: always() && steps.prepare-dependencies.outcome != 'skipped' && hashFiles('ThirdParty/cache_keys/**') != '' && steps.third-party-cache.outputs.cache-matched-key != format('{0}-x64-third-party-{1}-{2}', runner.os, hashFiles('Telegram/build/prepare/prepare.py'), hashFiles('ThirdParty/cache_keys/**'))
+        if: always() && steps.dependency-cache-key.outcome == 'success' && steps.dependency-cache-key.outputs.third_party_count != '0'
         uses: actions/cache/save@v6
+        continue-on-error: true
         with:
-          path: ThirdParty
-          key: ${{ runner.os }}-x64-third-party-${{ hashFiles('Telegram/build/prepare/prepare.py') }}-${{ hashFiles('ThirdParty/cache_keys/**') }}
+          path: ${{ github.workspace }}/../ThirdParty
+          key: ${{ runner.os }}-hoursgram-x64-third-party-v3-${{ steps.dependency-cache-key.outputs.third_party_hash }}
 
       - name: Save native libraries
-        if: always() && steps.prepare-dependencies.outcome != 'skipped' && hashFiles('Libraries/win64/cache_keys/**') != '' && steps.native-libraries-cache.outputs.cache-matched-key != format('{0}-x64-libraries-{1}-{2}', runner.os, hashFiles('Telegram/build/prepare/prepare.py'), hashFiles('Libraries/win64/cache_keys/**'))
+        if: always() && steps.dependency-cache-key.outcome == 'success' && steps.dependency-cache-key.outputs.libraries_count != '0'
         uses: actions/cache/save@v6
+        continue-on-error: true
         with:
-          path: Libraries/win64
-          key: ${{ runner.os }}-x64-libraries-${{ hashFiles('Telegram/build/prepare/prepare.py') }}-${{ hashFiles('Libraries/win64/cache_keys/**') }}
+          path: ${{ github.workspace }}/../Libraries/win64
+          key: ${{ runner.os }}-hoursgram-x64-libraries-v3-${{ steps.dependency-cache-key.outputs.libraries_hash }}
 
       - name: Configure HoursGram
         shell: cmd
