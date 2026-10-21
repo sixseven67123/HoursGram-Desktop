@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build:
     name: Build HoursGram.exe (x64 Release)
-    runs-on: windows-2025
+    runs-on: windows-2022
     timeout-minutes: 360
 
     steps:
