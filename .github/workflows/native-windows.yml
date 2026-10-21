@@ -1,0 +1,85 @@
+name: HoursGram Desktop Windows Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build HoursGram.exe (x64 Release)
+    runs-on: windows-2025
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out source and submodules
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.10'
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          sdk: 10.0.26100.0
+          toolset: '14.44'
+
+      - name: Prepare dependency directories
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path ThirdParty, Libraries\win64 | Out-Null
+
+      - name: Cache third-party build tools
+        uses: actions/cache@v6
+        with:
+          path: ThirdParty
+          key: ${{ runner.os }}-x64-third-party-${{ hashFiles('Telegram/build/prepare/prepare.py') }}
+          restore-keys: |
+            ${{ runner.os }}-x64-third-party-
+
+      - name: Cache native libraries
+        uses: actions/cache@v6
+        with:
+          path: Libraries/win64
+          key: ${{ runner.os }}-x64-libraries-${{ hashFiles('Telegram/build/prepare/prepare.py') }}
+          restore-keys: |
+            ${{ runner.os }}-x64-libraries-
+
+      - name: Configure NuGet sources
+        shell: cmd
+        run: |
+          nuget sources Disable -Name "Microsoft Visual Studio Offline Packages" >nul 2>&1
+          nuget sources Add -Source https://api.nuget.org/v3/index.json >nul 2>&1
+          exit /b 0
+
+      - name: Prepare native dependencies
+        shell: cmd
+        run: Telegram\build\prepare\win.bat
+
+      - name: Configure HoursGram
+        shell: cmd
+        working-directory: Telegram
+        run: configure.bat x64 -D TDESKTOP_API_ID=2040 -D TDESKTOP_API_HASH=b18441a1ff607e10a989891a5462e627
+
+      - name: Build HoursGram
+        shell: cmd
+        run: cmake --build out --config Release --target Telegram --parallel 4
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v7
+        with:
+          name: HoursGram-Windows-x64
+          path: out/Release/
+          if-no-files-found: error
+          retention-days: 7
