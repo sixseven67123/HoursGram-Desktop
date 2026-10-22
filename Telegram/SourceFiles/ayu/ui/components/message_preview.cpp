@@ -73,20 +73,20 @@ MessagePreview::MessagePreview(
 		FullMsgId(),
 		u"Update wehn?"_q);
 
-	const auto ayugramUser = HistoryView::GenerateUser(
+	const auto previewUser = HistoryView::GenerateUser(
 		history,
-		u"AyuGram Releases"_q);
+		history->session().user()->name());
 	const auto messageItem = history->addNewLocalMessage({
 		.id = history->nextNonHistoryEntryId(),
 		.flags = (MessageFlag::FakeHistoryItem
 			| MessageFlag::HasFromId
 			| MessageFlag::HasReplyInfo),
-		.from = ayugramUser,
+		.from = previewUser,
 		.replyTo = FullReplyTo{
 			.messageId = _state->reply->data()->fullId(),
 		},
 		.date = base::unixtime::now() - 3600,
-	}, TextWithEntities{ u"You need to go outside and touch some grass..."_q },
+	}, TextWithEntities{ u"HoursGram profile preview"_q },
 	MTP_messageMediaEmpty());
 
 	messageItem->setDeleted();
@@ -99,7 +99,7 @@ MessagePreview::MessagePreview(
 	auto edition = HistoryMessageEdition();
 	edition.editDate = base::unixtime::now();
 	edition.textWithEntities = TextWithEntities{
-		u"You need to go outside and touch some grass..."_q,
+		u"HoursGram profile preview"_q,
 	};
 	edition.useSameViews = true;
 	edition.useSameForwards = true;

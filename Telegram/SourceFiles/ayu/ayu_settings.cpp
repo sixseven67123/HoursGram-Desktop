@@ -20,7 +20,9 @@
 #include "platform/platform_translate_provider.h"
 #include "rpl/combine.h"
 #include "window/window_controller.h"
+#include "window/themes/window_theme.h"
 
+#include <algorithm>
 #include <fstream>
 #include <QApplication>
 
@@ -39,6 +41,7 @@ void repaintApp() {
 }
 
 rpl::lifetime lifetime; // idk reactivity dies when placed in `GhostModeAccountSettings` as field
+constexpr auto MAX_LOCAL_STARS = 999999999;
 
 } // namespace
 
@@ -518,6 +521,14 @@ void AyuSettings::validate() {
 	validateRange(_messageBubbleRadius, 0, 16, defaults._messageBubbleRadius);
 	validateRange(_wideMultiplier, 0.5, 4.0, defaults._wideMultiplier);
 	validateRange(_avatarCorners, 0, AyuUiSettings::kMaxAvatarCorners, defaults._avatarCorners);
+	if (_appIcon.current() != AyuAssets::DEFAULT_ICON) {
+		_appIcon = AyuAssets::DEFAULT_ICON;
+		modified = true;
+	}
+	if (_clientTheme.current() < -1 || _clientTheme.current() > 1) {
+		_clientTheme = defaults._clientTheme.current();
+		modified = true;
+	}
 
 	const auto embeddedType = _messageShotSettings._embeddedThemeType.current();
 	auto embeddedTypeValid = (embeddedType == -1) || (embeddedType >= 0 && embeddedType <= 3); // from Window::Theme::EmbeddedType::DayBlue to Window::Theme::EmbeddedType::NightGreen
@@ -703,6 +714,80 @@ void AyuSettings::setAppIcon(const QString &val) {
 	if (_appIcon.current() == val) return;
 	_appIcon = val;
 	save();
+}
+
+void AyuSettings::setClientTheme(int val) {
+	if (val < 0 || val > 1 || _clientTheme.current() == val) {
+		return;
+	}
+	if (val == 1) {
+		if (!Window::Theme::Apply(u":/gui/hoursgram.tdesktop-palette"_q)) {
+			return;
+		}
+		Window::Theme::KeepApplied();
+	} else {
+		Window::Theme::ResetToSomeDefault();
+	}
+	_clientTheme = val;
+	save();
+}
+
+LocalProfileCosmetics &AyuSettings::getLocalProfileCosmetics(uint64 userId) {
+	auto &cosmetics = _localProfileCosmetics[userId];
+	if (!cosmetics) {
+		cosmetics = std::make_unique<LocalProfileCosmetics>();
+	}
+	return *cosmetics;
+}
+
+rpl::producer<int> AyuSettings::localStarsValue(uint64 userId) {
+	return getLocalProfileCosmetics(userId).stars.value();
+}
+
+rpl::producer<QStringList> AyuSettings::localOwnedGiftsValue(uint64 userId) {
+	return getLocalProfileCosmetics(userId).gifts.value();
+}
+
+bool AyuSettings::hasLocalGift(uint64 userId, const QString &giftId) const {
+	const auto i = _localProfileCosmetics.find(userId);
+	return (i != _localProfileCosmetics.end())
+		&& i->second->gifts.current().contains(giftId);
+}
+
+bool AyuSettings::addLocalStars(uint64 userId, int amount) {
+	if (amount <= 0) {
+		return false;
+	}
+	auto &cosmetics = getLocalProfileCosmetics(userId);
+	const auto current = cosmetics.stars.current();
+	const auto added = std::min(amount, MAX_LOCAL_STARS - current);
+	if (added <= 0) {
+		return false;
+	}
+	cosmetics.stars = current + added;
+	save();
+	return true;
+}
+
+bool AyuSettings::buyLocalGift(
+		uint64 userId,
+		const QString &giftId,
+		int price) {
+	if (giftId.isEmpty() || price <= 0) {
+		return false;
+	}
+	auto &cosmetics = getLocalProfileCosmetics(userId);
+	const auto gifts = cosmetics.gifts.current();
+	const auto stars = cosmetics.stars.current();
+	if (gifts.contains(giftId) || stars < price) {
+		return false;
+	}
+	auto updatedGifts = gifts;
+	updatedGifts.push_back(giftId);
+	cosmetics.gifts = std::move(updatedGifts);
+	cosmetics.stars = stars - price;
+	save();
+	return true;
 }
 
 void AyuSettings::setSimpleQuotesAndReplies(bool val) {
@@ -1074,9 +1159,21 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 	for (const auto &[key, value] : s._ghostAccounts) {
 		ghostAccounts[std::to_string(key)] = *value;
 	}
+	auto localProfileCosmetics = nlohmann::json::object();
+	for (const auto &[key, value] : s._localProfileCosmetics) {
+		auto gifts = std::vector<std::string>();
+		for (const auto &gift : value->gifts.current()) {
+			gifts.push_back(gift.toStdString());
+		}
+		localProfileCosmetics[std::to_string(key)] = {
+			{ "stars", value->stars.current() },
+			{ "gifts", gifts },
+		};
+	}
 
 	j = nlohmann::json{
 		{"ghostModeSettings", ghostAccounts},
+		{"localProfileCosmetics", localProfileCosmetics},
 		{"useGlobalGhostMode", s._useGlobalGhostMode.current()},
 		{"saveDeletedMessages", s._saveDeletedMessages.current()},
 		{"saveMessagesHistory", s._saveMessagesHistory.current()},
@@ -1107,6 +1204,7 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		{"showGroupReactions", s._showGroupReactions.current()},
 		{"showPrivateChatReactions", s._showPrivateChatReactions.current()},
 		{"appIcon", s._appIcon.current()},
+		{"clientTheme", s._clientTheme.current()},
 		{"simpleQuotesAndReplies", s._simpleQuotesAndReplies.current()},
 		{"hideFastShare", s._hideFastShare.current()},
 		{"replaceBottomInfoWithIcons", s._replaceBottomInfoWithIcons.current()},
@@ -1211,6 +1309,37 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 	s._showGroupReactions = j.value("showGroupReactions", defaults._showGroupReactions.current());
 	s._showPrivateChatReactions = j.value("showPrivateChatReactions", defaults._showPrivateChatReactions.current());
 	s._appIcon = j.value("appIcon", defaults._appIcon.current());
+	s._clientTheme = j.value("clientTheme", defaults._clientTheme.current());
+	if (j.contains("localProfileCosmetics")
+		&& j["localProfileCosmetics"].is_object()) {
+		s._localProfileCosmetics.clear();
+		for (const auto &[key, value] : j["localProfileCosmetics"].items()) {
+			if (!value.is_object()) {
+				continue;
+			}
+			auto accountId = uint64(0);
+			try {
+				accountId = std::stoull(key);
+			} catch (...) {
+				continue;
+			}
+			auto cosmetics = std::make_unique<LocalProfileCosmetics>();
+			cosmetics->stars = std::clamp(
+				value.value("stars", 0),
+				0,
+				MAX_LOCAL_STARS);
+			auto gifts = QStringList();
+			if (value.contains("gifts") && value["gifts"].is_array()) {
+				for (const auto &gift : value["gifts"]) {
+					if (gift.is_string()) {
+						gifts.push_back(QString::fromStdString(gift.get<std::string>()));
+					}
+				}
+			}
+			cosmetics->gifts = std::move(gifts);
+			s._localProfileCosmetics[accountId] = std::move(cosmetics);
+		}
+	}
 	s._simpleQuotesAndReplies = j.value("simpleQuotesAndReplies", defaults._simpleQuotesAndReplies.current());
 	s._hideFastShare = j.value("hideFastShare", defaults._hideFastShare.current());
 	s._replaceBottomInfoWithIcons = j.value("replaceBottomInfoWithIcons", defaults._replaceBottomInfoWithIcons.current());

@@ -31,12 +31,47 @@
 #include "ui/wrap/vertical_layout.h"
 #include "window/window_session_controller.h"
 
+#include <array>
+
 namespace Settings {
 
 using namespace Builder;
 using namespace AyuBuilder;
 
 namespace {
+
+struct LocalGiftOffer {
+	QString id;
+	int price;
+};
+
+const auto LOCAL_GIFT_OFFERS = std::array{
+	LocalGiftOffer{ QStringLiteral("teddy"), 15 },
+	LocalGiftOffer{ QStringLiteral("cookie"), 25 },
+	LocalGiftOffer{ QStringLiteral("lollipop"), 15 },
+	LocalGiftOffer{ QStringLiteral("flamingo"), 20 },
+	LocalGiftOffer{ QStringLiteral("backpack"), 30 },
+	LocalGiftOffer{ QStringLiteral("lamp"), 35 },
+};
+
+constexpr auto LOCAL_STARS_GRANT = 100;
+
+[[nodiscard]] rpl::producer<QString> GetLocalGiftTitle(const QString &giftId) {
+	if (giftId == u"teddy"_q) {
+		return tr::hoursgram_GiftTeddy();
+	} else if (giftId == u"cookie"_q) {
+		return tr::hoursgram_GiftCookieHeart();
+	} else if (giftId == u"lollipop"_q) {
+		return tr::hoursgram_GiftLollipop();
+	} else if (giftId == u"flamingo"_q) {
+		return tr::hoursgram_GiftFlamingo();
+	} else if (giftId == u"backpack"_q) {
+		return tr::hoursgram_GiftBackpack();
+	} else if (giftId == u"lamp"_q) {
+		return tr::hoursgram_GiftLantern();
+	}
+	Unexpected("Unknown local HoursGram gift id.");
+}
 
 bool HasDrawerBots(not_null<Window::SessionController*> controller) {
 	// todo: maybe iterate through all accounts
@@ -189,6 +224,19 @@ void BuildAppearance(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	auto *settings = &AyuSettings::getInstance();
 
 	builder.addSubsectionTitle(tr::ayu_CategoryAppearance());
+	ayu.addChooseButton({
+		.id = u"hoursgram/theme"_q,
+		.title = tr::hoursgram_ThemeChoiceTitle(),
+		.boxTitle = tr::hoursgram_ThemeChoiceTitle(),
+		.initialSelection = settings->clientTheme() == 1 ? 0 : 1,
+		.options = {
+			tr::hoursgram_ThemeHoursGram(tr::now),
+			tr::hoursgram_ThemeTelegram(tr::now),
+		},
+		.setter = [=](int value) {
+			settings->setClientTheme(value == 0 ? 1 : 0);
+		},
+	});
 
 	ayu.addSettingToggle({
 		.id = u"ayu/materialSwitches"_q,
@@ -230,6 +278,75 @@ void BuildAppearance(SectionBuilder &builder, AyuSectionBuilder &ayu) {
 	});
 
 	ayu.addSectionDivider();
+}
+
+void AddLocalGift(
+		SectionBuilder &builder,
+		not_null<Window::SessionController*> controller,
+		uint64 userId,
+		QString giftId,
+		rpl::producer<QString> title,
+		int price) {
+	auto *settings = &AyuSettings::getInstance();
+	auto label = settings->localOwnedGiftsValue(userId) | rpl::map(
+		[giftId, price](const QStringList &gifts) {
+			if (gifts.contains(giftId)) {
+				return tr::hoursgram_GiftOwned(tr::now);
+			}
+			return QString("%1 · %2 ★")
+				.arg(tr::hoursgram_AddGift(tr::now))
+				.arg(price);
+		});
+	const auto id = u"hoursgram/gifts/"_q + giftId;
+	builder.addButton({
+		.id = id,
+		.title = std::move(title),
+		.st = &st::settingsButtonNoIcon,
+		.label = std::move(label),
+		.onClick = [=] {
+			if (settings->hasLocalGift(userId, giftId)) {
+				controller->showToast(tr::hoursgram_GiftOwned(tr::now));
+			} else if (settings->buyLocalGift(userId, giftId, price)) {
+				controller->showToast(tr::hoursgram_GiftAdded(tr::now));
+			} else {
+				controller->showToast(tr::hoursgram_NotEnoughStars(tr::now));
+			}
+		},
+	});
+}
+
+void BuildHoursGramStudio(SectionBuilder &builder) {
+	const auto controller = builder.controller();
+	const auto userId = controller->session().userId().bare;
+	auto *settings = &AyuSettings::getInstance();
+
+	builder.addSubsectionTitle(tr::hoursgram_ProfileStudio());
+	builder.addButton({
+		.id = u"hoursgram/localStars"_q,
+		.title = tr::hoursgram_AddLocalStars(),
+		.st = &st::settingsButtonNoIcon,
+		.label = settings->localStarsValue(userId) | rpl::map([](int stars) {
+			return QString("%1 ★").arg(stars);
+		}),
+		.onClick = [=] {
+			if (settings->addLocalStars(userId, LOCAL_STARS_GRANT)) {
+				controller->showToast(tr::hoursgram_StarsAdded(tr::now));
+			}
+		},
+	});
+
+	builder.addSubsectionTitle(tr::hoursgram_LocalGiftMarket());
+	for (const auto &gift : LOCAL_GIFT_OFFERS) {
+		AddLocalGift(
+			builder,
+			controller,
+			userId,
+			gift.id,
+			GetLocalGiftTitle(gift.id),
+			gift.price);
+	}
+	builder.addDividerText(tr::hoursgram_LocalOnlyNotice());
+	builder.addSkip();
 }
 
 void BuildChatFolders(SectionBuilder &builder, AyuSectionBuilder &ayu) {
@@ -385,6 +502,7 @@ const auto kMeta = BuildHelper({
 	builder.addSkip();
 	BuildAppIcon(builder, ayu);
 	BuildAvatarCorners(builder, ayu);
+	BuildHoursGramStudio(builder);
 	BuildAppearance(builder, ayu);
 	BuildChatFolders(builder, ayu);
 	BuildTrayElements(builder, ayu);

@@ -12,10 +12,12 @@
 #include "ayu/ayu_worker.h"
 #include "ayu/data/ayu_database.h"
 #include "ayu/ui/ayu_logo.h"
+#include "core/application.h"
 #include "features/translator/ayu_translator.h"
 #include "lang/lang_instance.h"
 #include "ui/chat/chat_style_radius.h"
 #include "utils/rc_manager.h"
+#include "window/main_window.h"
 
 #ifdef Q_OS_WIN
 #include "ayu/utils/windows_utils.h"
@@ -65,6 +67,8 @@ void initIcon() {
 	AyuAssets::loadAppIco();
 	reloadAppIconFromTaskBar();
 #endif
+	Window::OverrideApplicationIcon(AyuAssets::currentAppLogo());
+	Core::App().refreshApplicationIcon();
 }
 
 void init() {

@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "mainwindow.h"
 
+#include "ayu/ayu_settings.h"
 #include "data/data_document.h"
 #include "data/data_session.h"
 #include "data/data_document_media.h"
@@ -21,6 +22,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/ui_utility.h"
 #include "lang/lang_cloud_manager.h"
 #include "lang/lang_instance.h"
+#include "lang_auto.h"
 #include "core/sandbox.h"
 #include "core/application.h"
 #include "export/export_manager.h"
@@ -356,6 +358,23 @@ void MainWindow::setupMain(
 	fixOrder();
 	if (const auto strong = weakAnimatedLayer.get()) {
 		strong->hideAllAnimatedRun();
+	}
+	if (!_passcodeLock
+		&& !_setupEmailLock
+		&& AyuSettings::getInstance().clientTheme() == -1) {
+		sessionController()->show(Ui::MakeConfirmBox({
+			.title = tr::hoursgram_ThemeChoiceTitle(),
+			.text = tr::hoursgram_ThemeChoiceText(),
+			.confirmed = [] {
+				AyuSettings::getInstance().setClientTheme(1);
+			},
+			.cancelled = [] {
+				AyuSettings::getInstance().setClientTheme(0);
+			},
+			.confirmText = tr::hoursgram_ThemeHoursGram(tr::now),
+			.cancelText = tr::hoursgram_ThemeTelegram(tr::now),
+			.strictCancel = true,
+		}));
 	}
 }
 

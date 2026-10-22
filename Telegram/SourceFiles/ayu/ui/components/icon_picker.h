@@ -15,7 +15,7 @@ public:
 	IconPicker(QWidget *parent);
 	~IconPicker() = default;
 
-	static constexpr int kColumns = 4;
+	static constexpr int kColumns = 1;
 
 protected:
 	void paintEvent(QPaintEvent *e) override;
@@ -28,4 +28,5 @@ private:
 	Ui::Animations::Simple _animation;
 	QString _wasSelected;
 	std::unordered_map<QString, QImage> _cachedIcons;
+
 };

@@ -12,9 +12,9 @@
 #include "rpl/producer.h"
 #include "rpl/variable.h"
 
+#include <QStringList>
 #include <map>
 #include <unordered_set>
-
 
 namespace Main {
 class Session;
@@ -49,6 +49,11 @@ enum class SendWithoutSoundOption {
 	Never = 0,
 	InGhostMode = 1,
 	Always = 2,
+};
+
+struct LocalProfileCosmetics {
+	rpl::variable<int> stars = 0;
+	rpl::variable<QStringList> gifts = QStringList();
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PeerIdDisplay, {
@@ -295,6 +300,7 @@ public:
 	[[nodiscard]] bool showGroupReactions() const { return _showGroupReactions.current(); }
 	[[nodiscard]] bool showPrivateChatReactions() const { return _showPrivateChatReactions.current(); }
 	[[nodiscard]] const QString &appIcon() const { return _appIcon.current(); }
+	[[nodiscard]] int clientTheme() const { return _clientTheme.current(); }
 	[[nodiscard]] bool simpleQuotesAndReplies() const { return _simpleQuotesAndReplies.current(); }
 	[[nodiscard]] bool hideFastShare() const { return _hideFastShare.current(); }
 	[[nodiscard]] bool replaceBottomInfoWithIcons() const { return _replaceBottomInfoWithIcons.current(); }
@@ -382,6 +388,12 @@ public:
 	void setShowGroupReactions(bool val);
 	void setShowPrivateChatReactions(bool val);
 	void setAppIcon(const QString &val);
+	void setClientTheme(int val);
+	[[nodiscard]] bool addLocalStars(uint64 userId, int amount);
+	[[nodiscard]] bool buyLocalGift(uint64 userId, const QString &giftId, int price);
+	[[nodiscard]] bool hasLocalGift(uint64 userId, const QString &giftId) const;
+	[[nodiscard]] rpl::producer<int> localStarsValue(uint64 userId);
+	[[nodiscard]] rpl::producer<QStringList> localOwnedGiftsValue(uint64 userId);
 	void setSimpleQuotesAndReplies(bool val);
 	void setHideFastShare(bool val);
 	void setReplaceBottomInfoWithIcons(bool val);
@@ -621,6 +633,7 @@ public:
 
 private:
 	AyuSettings();
+	[[nodiscard]] LocalProfileCosmetics &getLocalProfileCosmetics(uint64 userId);
 
 	[[nodiscard]] uint64 getOverriddenGhostUserId(uint64 userId) const { return _useGlobalGhostMode.current() ? 0 : userId; }
 
@@ -652,6 +665,7 @@ private:
 	rpl::variable<bool> _showGroupReactions = true;
 	rpl::variable<bool> _showPrivateChatReactions = true;
 	rpl::variable<QString> _appIcon;
+	rpl::variable<int> _clientTheme = -1;
 	rpl::variable<bool> _simpleQuotesAndReplies = false;
 	rpl::variable<bool> _hideFastShare = false;
 	rpl::variable<bool> _replaceBottomInfoWithIcons = true;
@@ -714,6 +728,7 @@ private:
 
 	rpl::variable<bool> _useGlobalGhostMode = true;
 	std::map<uint64, std::unique_ptr<GhostModeAccountSettings>> _ghostAccounts;
+	std::map<uint64, std::unique_ptr<LocalProfileCosmetics>> _localProfileCosmetics;
 
 	MessageShotSettings _messageShotSettings;
 };
