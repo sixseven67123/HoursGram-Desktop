@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "api/api_chat_participants.h"
 #include "apiwrap.h"
+#include "ayu/ayu_settings.h"
 #include "info/profile/info_profile_phone_menu.h"
 #include "info/profile/info_profile_badge.h"
 #include "core/application.h"
@@ -53,16 +54,25 @@ auto PlainAboutValue(not_null<PeerData*> peer) {
 }
 
 auto PlainUsernameValue(not_null<PeerData*> peer) {
-	return rpl::merge(
+	auto value = rpl::merge(
 		peer->session().changes().peerFlagsValue(peer, UpdateFlag::Username),
 		peer->session().changes().peerFlagsValue(peer, UpdateFlag::Usernames)
 	) | rpl::map([=] {
 		return peer->username();
-	});
+	}) | rpl::type_erased;
+	if (!peer->isSelf()) {
+		return value;
+	}
+	return rpl::combine(
+		std::move(value),
+		AyuSettings::getInstance().getLocalProfileUsernameValue(peer->id.value)
+	) | rpl::map([](const QString &username, const QString &localUsername) {
+		return localUsername.isEmpty() ? username : localUsername;
+	}) | rpl::type_erased;
 }
 
 auto PlainPrimaryUsernameValue(not_null<PeerData*> peer) {
-	return UsernamesValue(
+	auto value = UsernamesValue(
 		peer
 	) | rpl::map([=](std::vector<TextWithEntities> usernames) {
 		if (!usernames.empty()) {
@@ -70,7 +80,16 @@ auto PlainPrimaryUsernameValue(not_null<PeerData*> peer) {
 		} else {
 			return PlainUsernameValue(peer) | rpl::type_erased;
 		}
-	}) | rpl::flatten_latest();
+	}) | rpl::flatten_latest() | rpl::type_erased;
+	if (!peer->isSelf()) {
+		return value;
+	}
+	return rpl::combine(
+		std::move(value),
+		AyuSettings::getInstance().getLocalProfileUsernameValue(peer->id.value)
+	) | rpl::map([](const QString &username, const QString &localUsername) {
+		return localUsername.isEmpty() ? username : localUsername;
+	}) | rpl::type_erased;
 }
 
 void StripExternalLinks(TextWithEntities &text) {
@@ -125,14 +144,25 @@ rpl::producer<int32> ColorIdValue(not_null<Data::ForumTopic*> topic) {
 }
 
 rpl::producer<TextWithEntities> PhoneValue(not_null<UserData*> user) {
-	return rpl::merge(
+	auto value = rpl::merge(
 		Countries::Instance().updated(),
 		user->session().changes().peerFlagsValue(
 			user,
 			UpdateFlag::PhoneNumber) | rpl::to_empty
 	) | rpl::map([=] {
 		return tr::marked(Ui::FormatPhone(user->phone()));
-	});
+	}) | rpl::type_erased;
+	if (!user->isSelf()) {
+		return value;
+	}
+	return rpl::combine(
+		std::move(value),
+		AyuSettings::getInstance().getLocalProfilePhoneValue(user->id.value)
+	) | rpl::map([](
+				const TextWithEntities &phone,
+				const QString &localPhone) {
+		return localPhone.isEmpty() ? phone : tr::marked(localPhone);
+	}) | rpl::type_erased;
 }
 
 rpl::producer<TextWithEntities> PhoneOrHiddenValue(not_null<UserData*> user) {
@@ -148,6 +178,10 @@ rpl::producer<TextWithEntities> PhoneOrHiddenValue(not_null<UserData*> user) {
 			const QString &hidden) {
 		if (phone.text.isEmpty() && username.isEmpty() && about.isEmpty()) {
 			return tr::marked(hidden);
+		} else if (user->isSelf()
+			&& !AyuSettings::getInstance().getLocalProfilePhone(
+				user->id.value).isEmpty()) {
+			return phone;
 		} else if (IsCollectiblePhone(user)) {
 			return tr::link(phone, u"internal:collectible_phone/"_q
 				+ user->phone() + '@' + QString::number(user->id.value));

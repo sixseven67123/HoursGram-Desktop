@@ -41,6 +41,8 @@ AvatarCornersPreview::AvatarCornersPreview(
 				emojis += u"🎒"_q;
 			} else if (gift == u"lamp"_q) {
 				emojis += u"🏮"_q;
+			} else if (gift.startsWith(u"telegram:"_q)) {
+				emojis += u"🎁"_q;
 			}
 		}
 		const auto subtitle = emojis.isEmpty()

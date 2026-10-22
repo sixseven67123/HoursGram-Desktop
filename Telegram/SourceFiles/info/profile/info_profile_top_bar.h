@@ -193,7 +193,8 @@ private:
 		not_null<Window::SessionController*> controller);
 	void setupNewGifts(
 		not_null<Window::SessionController*> controller,
-		const std::vector<Data::SavedStarGift> &gifts);
+		const std::vector<Data::SavedStarGift> &gifts,
+		const std::vector<Data::StarGift> &localGifts);
 	void paintPinnedToTopGifts(
 		QPainter &p,
 		const QRect &rect,

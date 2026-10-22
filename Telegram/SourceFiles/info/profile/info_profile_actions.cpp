@@ -13,6 +13,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_report.h"
 #include "api/api_statistics.h"
 #include "apiwrap.h"
+#include "ayu/ayu_settings.h"
 #include "base/call_delayed.h"
 #include "base/event_filter.h"
 #include "base/options.h"
@@ -1752,12 +1753,18 @@ Section DetailsFiller::makeInfo() {
 		addTranslateToMenu(about.text, AboutWithAdvancedValue(user));
 		SetupAboutPeerIdDrag(about.text, user);
 
+		const auto isLocalProfileUsername = [=] {
+			return user->isSelf()
+				&& !AyuSettings::getInstance().getLocalProfileUsername(
+					user->id.value).isEmpty();
+		};
 		const auto usernameLine = addInfoOneLine(
 			UsernamesSubtext(_peer, tr::lng_info_username_label()),
 			UsernameValue(user, true) | rpl::map([=](TextWithEntities u) {
-				return u.text.isEmpty()
-					? TextWithEntities()
-					: tr::link(u, UsernameUrl(user, u.text.mid(1)));
+				if (u.text.isEmpty() || isLocalProfileUsername()) {
+					return u;
+				}
+				return tr::link(u, UsernameUrl(user, u.text.mid(1)));
 			}),
 			QString(),
 			st::infoProfileLabeledUsernamePadding);
@@ -1774,7 +1781,7 @@ Section DetailsFiller::makeInfo() {
 			true
 		) | rpl::on_next([=, label = usernameLine.text](
 				const TextWithEntities &u) {
-			if (u.text.isEmpty()) {
+			if (u.text.isEmpty() || isLocalProfileUsername()) {
 				return;
 			}
 			const auto username = u.text.mid(1);

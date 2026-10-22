@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <fstream>
 #include <QApplication>
+#include <QtCore/QRegularExpression>
 
 using json = nlohmann::json;
 
@@ -42,6 +43,18 @@ void repaintApp() {
 
 rpl::lifetime lifetime; // idk reactivity dies when placed in `GhostModeAccountSettings` as field
 constexpr auto MAX_LOCAL_STARS = 999999999;
+constexpr auto MAX_LOCAL_PROFILE_VALUE_LENGTH = 32;
+const auto LOCAL_USERNAME_SANITIZER = QRegularExpression(
+	u"[^A-Za-z0-9_.-]"_q);
+
+QString NormalizeLocalUsername(QString value) {
+	value = value.trimmed();
+	if (value.startsWith('@')) {
+		value.remove(0, 1);
+	}
+	value.remove(LOCAL_USERNAME_SANITIZER);
+	return value.left(MAX_LOCAL_PROFILE_VALUE_LENGTH);
+}
 
 } // namespace
 
@@ -748,10 +761,91 @@ rpl::producer<QStringList> AyuSettings::localOwnedGiftsValue(uint64 userId) {
 	return getLocalProfileCosmetics(userId).gifts.value();
 }
 
+QStringList AyuSettings::localOwnedGifts(uint64 userId) const {
+	const auto i = _localProfileCosmetics.find(userId);
+	return (i == _localProfileCosmetics.end())
+		? QStringList()
+		: i->second->gifts.current();
+}
+
+rpl::producer<QString> AyuSettings::getLocalProfileUsernameValue(uint64 userId) {
+	return getLocalProfileCosmetics(userId).username.value();
+}
+
+QString AyuSettings::getLocalProfileUsername(uint64 userId) const {
+	const auto i = _localProfileCosmetics.find(userId);
+	return (i == _localProfileCosmetics.end())
+		? QString()
+		: i->second->username.current();
+}
+
+void AyuSettings::setLocalProfileUsername(
+		uint64 userId,
+		const QString &username) {
+	auto value = NormalizeLocalUsername(username);
+	auto &cosmetics = getLocalProfileCosmetics(userId);
+	if (cosmetics.username.current() == value) {
+		return;
+	}
+	cosmetics.username = std::move(value);
+	save();
+}
+
+rpl::producer<QString> AyuSettings::getLocalProfilePhoneValue(uint64 userId) {
+	return getLocalProfileCosmetics(userId).phone.value();
+}
+
+QString AyuSettings::getLocalProfilePhone(uint64 userId) const {
+	const auto i = _localProfileCosmetics.find(userId);
+	return (i == _localProfileCosmetics.end())
+		? QString()
+		: i->second->phone.current();
+}
+
+void AyuSettings::setLocalProfilePhone(
+		uint64 userId,
+		const QString &phone) {
+	const auto value = phone.trimmed().left(MAX_LOCAL_PROFILE_VALUE_LENGTH);
+	auto &cosmetics = getLocalProfileCosmetics(userId);
+	if (cosmetics.phone.current() == value) {
+		return;
+	}
+	cosmetics.phone = value;
+	save();
+}
+
 bool AyuSettings::hasLocalGift(uint64 userId, const QString &giftId) const {
 	const auto i = _localProfileCosmetics.find(userId);
 	return (i != _localProfileCosmetics.end())
 		&& i->second->gifts.current().contains(giftId);
+}
+
+bool AyuSettings::addLocalGift(uint64 userId, const QString &giftId) {
+	if (giftId.isEmpty() || hasLocalGift(userId, giftId)) {
+		return false;
+	}
+	auto &cosmetics = getLocalProfileCosmetics(userId);
+	auto gifts = cosmetics.gifts.current();
+	gifts.push_back(giftId);
+	cosmetics.gifts = std::move(gifts);
+	save();
+	return true;
+}
+
+bool AyuSettings::removeLocalGift(uint64 userId, const QString &giftId) {
+	const auto i = _localProfileCosmetics.find(userId);
+	if (i == _localProfileCosmetics.end()) {
+		return false;
+	}
+	auto gifts = i->second->gifts.current();
+	const auto found = std::ranges::find(gifts, giftId);
+	if (found == gifts.end()) {
+		return false;
+	}
+	gifts.erase(found);
+	i->second->gifts = std::move(gifts);
+	save();
+	return true;
 }
 
 bool AyuSettings::addLocalStars(uint64 userId, int amount) {
@@ -1168,6 +1262,8 @@ void to_json(nlohmann::json &j, const AyuSettings &s) {
 		localProfileCosmetics[std::to_string(key)] = {
 			{ "stars", value->stars.current() },
 			{ "gifts", gifts },
+			{ "username", value->username.current().toStdString() },
+			{ "phone", value->phone.current().toStdString() },
 		};
 	}
 
@@ -1337,6 +1433,17 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 				}
 			}
 			cosmetics->gifts = std::move(gifts);
+			if (value.contains("username") && value["username"].is_string()) {
+				cosmetics->username = NormalizeLocalUsername(
+					QString::fromStdString(
+						value["username"].get<std::string>()));
+			}
+			if (value.contains("phone") && value["phone"].is_string()) {
+				cosmetics->phone = QString::fromStdString(
+					value["phone"].get<std::string>())
+					.trimmed()
+					.left(MAX_LOCAL_PROFILE_VALUE_LENGTH);
+			}
 			s._localProfileCosmetics[accountId] = std::move(cosmetics);
 		}
 	}

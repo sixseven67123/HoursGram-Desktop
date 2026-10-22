@@ -4624,6 +4624,8 @@ object_ptr<RpWidget> MakeGiftsList(GiftsListArgs &&args) {
 		? GiftButtonMode::Craft
 		: (mode == GiftsListMode::CraftResale)
 		? GiftButtonMode::CraftResale
+		: (mode == GiftsListMode::Local)
+		? GiftButtonMode::Minimal
 		: GiftButtonMode::Full;
 	const auto state = raw->lifetime().make_state<State>(State{
 		.delegate = Delegate(session, buttonMode),
@@ -4639,8 +4641,11 @@ object_ptr<RpWidget> MakeGiftsList(GiftsListArgs &&args) {
 	const auto handler = args.handler
 		? args.handler
 		: crl::guard(raw, [=](const GiftDescriptor &descriptor) {
-			DefaultGiftHandler(window, &state->handlerState, descriptor);
+			if (mode != GiftsListMode::Local) {
+				DefaultGiftHandler(window, &state->handlerState, descriptor);
+			}
 		});
+	const auto localSelection = args.localSelection;
 
 	auto &packs = session->giftBoxStickersPacks();
 	packs.updated() | rpl::on_next([=] {
@@ -4724,8 +4729,23 @@ object_ptr<RpWidget> MakeGiftsList(GiftsListArgs &&args) {
 				raw->setAttribute(Qt::WA_TransparentForMouseEvents, already);
 			}
 			raw->setDescriptor(descriptor, buttonMode);
+			if (mode == GiftsListMode::Local && localSelection) {
+				if (const auto gift = std::get_if<GiftTypeStars>(&descriptor)) {
+					raw->toggleSelected(
+						localSelection(gift->info.id),
+						GiftSelectionMode::Inset,
+						anim::type::instant);
+				}
+			}
 			raw->setClickedCallback([=] {
 				handler(descriptor);
+				if (mode == GiftsListMode::Local && localSelection) {
+					if (const auto gift = std::get_if<GiftTypeStars>(&descriptor)) {
+						raw->toggleSelected(
+							localSelection(gift->info.id),
+							GiftSelectionMode::Inset);
+					}
+				}
 			});
 			raw->setGeometry(QRect(QPoint(x, y), single), extend);
 		};

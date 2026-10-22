@@ -177,6 +177,7 @@ enum class GiftsListMode {
 	Send,
 	Craft,
 	CraftResale,
+	Local,
 };
 struct GiftsListArgs {
 	not_null<Window::SessionController*> window;
@@ -186,6 +187,7 @@ struct GiftsListArgs {
 	std::vector<std::shared_ptr<Data::UniqueGift>> selected;
 	Fn<void()> loadMore;
 	Fn<void(Info::PeerGifts::GiftDescriptor)> handler;
+	Fn<bool(uint64)> localSelection;
 };
 [[nodiscard]] object_ptr<RpWidget> MakeGiftsList(GiftsListArgs &&args);
 

@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "api/api_peer_colors.h"
 #include "api/api_peer_photo.h"
+#include "api/api_premium.h"
 #include "api/api_user_privacy.h"
 #include "apiwrap.h"
 #include "base/call_delayed.h"
@@ -59,6 +60,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/userpic/info_userpic_emoji_builder_common.h"
 #include "info/userpic/info_userpic_emoji_builder_menu_item.h"
 #include "lang/lang_keys.h"
+#include "lang_auto.h"
 #include "lottie/lottie_animation.h"
 #include "lottie/lottie_multi_player.h"
 #include "main/main_session.h"
@@ -110,6 +112,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ui/ayu_userpic.h"
+#include "ayu/ayu_settings.h"
 #include "ayu/utils/telegram_helpers.h"
 
 
@@ -529,6 +532,14 @@ TopBar::TopBar(
 			updateCollectibleStatus();
 		}
 	}, lifetime());
+	if (_peer->isSelf()) {
+		AyuSettings::getInstance().localOwnedGiftsValue(
+			_peer->session().userId().bare
+		) | rpl::skip(1) | rpl::on_next([=] {
+			_peer->session().recentSharedGifts().clearLastRequestTime(_peer);
+			setupPinnedToTopGifts(controller);
+		}, lifetime());
+	}
 
 	std::move(
 		descriptor.showFinished
@@ -3315,8 +3326,9 @@ void TopBar::paintAnimatedPattern(
 
 void TopBar::setupPinnedToTopGifts(
 		not_null<Window::SessionController*> controller) {
-	const auto requestDone = crl::guard(this, [=](
-			std::vector<Data::SavedStarGift> gifts) {
+	const auto showGifts = crl::guard(this, [=](
+			std::vector<Data::SavedStarGift> gifts,
+			std::vector<Data::StarGift> localGifts) {
 		const auto shouldHideFirst = _pinnedToTopGiftsFirstTimeShowed
 			&& !_pinnedToTopGifts.empty();
 
@@ -3329,7 +3341,7 @@ void TopBar::setupPinnedToTopGifts(
 					_pinnedToTopGifts.clear();
 					_giftsLoadingLifetime.destroy();
 					updateCollectibleStatus();
-					setupNewGifts(controller, gifts);
+					setupNewGifts(controller, gifts, localGifts);
 				}
 			}, 1., 0., 300, anim::linear);
 			return;
@@ -3339,26 +3351,129 @@ void TopBar::setupPinnedToTopGifts(
 		_giftsLoadingLifetime.destroy();
 
 		updateCollectibleStatus();
-		setupNewGifts(controller, gifts);
+		setupNewGifts(controller, gifts, localGifts);
+	});
+	const auto requestDone = crl::guard(this, [=](
+			std::vector<Data::SavedStarGift> gifts) {
+		if (!_peer->isSelf()) {
+			showGifts(std::move(gifts), {});
+			return;
+		}
+
+		const auto userId = _peer->session().userId().bare;
+		const auto stored = AyuSettings::getInstance().localOwnedGifts(userId);
+		const auto localGiftIds = [&] {
+			struct Selection {
+				uint64 giftId = 0;
+				int number = 0;
+			};
+			auto result = std::vector<Selection>();
+			for (const auto &value : stored) {
+				const auto parts = value.split(':');
+				if (parts.size() == 2 && parts[0] == u"telegram"_q) {
+					auto idOk = false;
+					const auto id = parts[1].toULongLong(&idOk);
+					if (idOk) {
+						result.push_back({ .giftId = id });
+					}
+				} else if (parts.size() == 3 && parts[0] == u"nft"_q) {
+					auto idOk = false;
+					auto numberOk = false;
+					const auto id = parts[1].toULongLong(&idOk);
+					const auto number = parts[2].toInt(&numberOk);
+					if (idOk && numberOk && number > 0) {
+						result.push_back({ .giftId = id, .number = number });
+					}
+				}
+			}
+			return result;
+		}();
+		if (localGiftIds.empty()) {
+			showGifts(std::move(gifts), {});
+			return;
+		}
+
+		const auto api = _giftsLoadingLifetime.make_state<
+			Api::PremiumGiftCodeOptions>(_peer);
+		api->requestStarGifts() | rpl::on_error_done(
+			[=](QString) {
+				showGifts(gifts, {});
+			},
+			[=] {
+				auto local = std::vector<Data::StarGift>();
+				for (const auto &selection : localGiftIds) {
+					for (const auto &gift : api->starGifts()) {
+						if (gift.id == selection.giftId) {
+							if (selection.number > 0) {
+								auto model = Data::UniqueGiftModel{
+									.document = gift.document,
+								};
+								model.name = u"HoursGram"_q;
+								model.rarityValue = 1000;
+								auto pattern = Data::UniqueGiftPattern{
+									.document = gift.document,
+								};
+								pattern.name = u"HoursGram"_q;
+								pattern.rarityValue = 1000;
+								const auto unique = std::make_shared<
+									Data::UniqueGift>(Data::UniqueGift{
+									.id = CollectibleId(gift.id),
+									.initialGiftId = gift.id,
+									.slug = u"hoursgram-"_q
+										+ QString::number(gift.id)
+										+ '-'
+										+ QString::number(selection.number),
+									.title = u"HoursGram"_q,
+									.number = selection.number,
+									.model = std::move(model),
+									.pattern = std::move(pattern),
+									.backdrop = gift.background
+										? gift.background->backdrop()
+										: Data::UniqueGiftBackdrop(),
+								});
+								auto nft = gift;
+								nft.unique = unique;
+								local.push_back(std::move(nft));
+							} else {
+								local.push_back(gift);
+							}
+							break;
+						}
+					}
+				}
+				showGifts(gifts, std::move(local));
+			},
+			_giftsLoadingLifetime);
 	});
 	_peer->session().recentSharedGifts().request(_peer, requestDone, true);
 }
 
 void TopBar::setupNewGifts(
 		not_null<Window::SessionController*> controller,
-		const std::vector<Data::SavedStarGift> &gifts) {
+		const std::vector<Data::SavedStarGift> &gifts,
+		const std::vector<Data::StarGift> &localGifts) {
 	const auto emojiStatusId = _peer->emojiStatusId().collectible
 		? _peer->emojiStatusId().collectible->id
 		: CollectibleId(0);
-	auto filteredGifts = std::vector<Data::SavedStarGift>();
+	struct GiftForDisplay {
+		Data::SavedStarGift gift;
+		bool local = false;
+	};
+	auto filteredGifts = std::vector<GiftForDisplay>();
 	const auto subtract = emojiStatusId ? 1 : 0;
-	filteredGifts.reserve((gifts.size() > subtract)
-		? (gifts.size() - subtract)
-		: 0);
+	filteredGifts.reserve(
+		(gifts.size() > subtract ? gifts.size() - subtract : 0)
+			+ localGifts.size());
+	for (const auto &gift : localGifts) {
+		filteredGifts.push_back({
+			.gift = Data::SavedStarGift{ .info = gift, .mine = true },
+			.local = true,
+		});
+	}
 	for (const auto &gift : gifts) {
 		if (const auto &unique = gift.info.unique) {
 			if (unique->id != emojiStatusId) {
-				filteredGifts.push_back(gift);
+				filteredGifts.push_back({ .gift = gift });
 			}
 		}
 	}
@@ -3388,7 +3503,8 @@ void TopBar::setupNewGifts(
 	for (auto i = 0;
 		i < filteredGifts.size() && i < kMaxPinnedToTopGifts;
 		++i) {
-		const auto &gift = filteredGifts[i];
+		const auto &entryData = filteredGifts[i];
+		const auto &gift = entryData.gift;
 		const auto document = _peer->owner().document(
 			gift.info.document->id);
 		auto entry = PinnedToTopGiftEntry();
@@ -3409,6 +3525,10 @@ void TopBar::setupNewGifts(
 		entry.button = base::make_unique_q<Ui::AbstractButton>(this);
 		entry.button->setAccessibleName([&] {
 			const auto base = tr::lng_profile_action_short_gift(tr::now);
+			if (entryData.local) {
+				return base + u": "_q
+					+ tr::hoursgram_LocalGiftMarket(tr::now);
+			}
 
 			if (const auto &unique = gift.info.unique) {
 				const auto name = Data::UniqueGiftName(*unique);
@@ -3421,8 +3541,16 @@ void TopBar::setupNewGifts(
 		}());
 		entry.button->show();
 
-		entry.button->setClickedCallback([=, giftData = gift, peer = _peer] {
-			::Settings::ShowSavedStarGiftBox(controller, peer, giftData);
+		entry.button->setClickedCallback([
+				=,
+				giftData = gift,
+				peer = _peer,
+				local = entryData.local] {
+			if (local) {
+				controller->showToast(tr::hoursgram_LocalOnlyNotice(tr::now));
+			} else {
+				::Settings::ShowSavedStarGiftBox(controller, peer, giftData);
+			}
 		});
 
 		_pinnedToTopGifts.push_back(std::move(entry));

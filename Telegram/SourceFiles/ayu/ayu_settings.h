@@ -54,6 +54,8 @@ enum class SendWithoutSoundOption {
 struct LocalProfileCosmetics {
 	rpl::variable<int> stars = 0;
 	rpl::variable<QStringList> gifts = QStringList();
+	rpl::variable<QString> username = QString();
+	rpl::variable<QString> phone = QString();
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PeerIdDisplay, {
@@ -390,10 +392,19 @@ public:
 	void setAppIcon(const QString &val);
 	void setClientTheme(int val);
 	[[nodiscard]] bool addLocalStars(uint64 userId, int amount);
+	[[nodiscard]] bool addLocalGift(uint64 userId, const QString &giftId);
+	[[nodiscard]] bool removeLocalGift(uint64 userId, const QString &giftId);
 	[[nodiscard]] bool buyLocalGift(uint64 userId, const QString &giftId, int price);
 	[[nodiscard]] bool hasLocalGift(uint64 userId, const QString &giftId) const;
 	[[nodiscard]] rpl::producer<int> localStarsValue(uint64 userId);
 	[[nodiscard]] rpl::producer<QStringList> localOwnedGiftsValue(uint64 userId);
+	[[nodiscard]] QStringList localOwnedGifts(uint64 userId) const;
+	[[nodiscard]] rpl::producer<QString> getLocalProfileUsernameValue(uint64 userId);
+	[[nodiscard]] QString getLocalProfileUsername(uint64 userId) const;
+	void setLocalProfileUsername(uint64 userId, const QString &username);
+	[[nodiscard]] rpl::producer<QString> getLocalProfilePhoneValue(uint64 userId);
+	[[nodiscard]] QString getLocalProfilePhone(uint64 userId) const;
+	void setLocalProfilePhone(uint64 userId, const QString &phone);
 	void setSimpleQuotesAndReplies(bool val);
 	void setHideFastShare(bool val);
 	void setReplaceBottomInfoWithIcons(bool val);
