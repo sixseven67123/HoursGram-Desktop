@@ -363,7 +363,6 @@ void MainWindow::setupMain(
 		&& !_setupEmailLock
 		&& AyuSettings::getInstance().clientTheme() == -1) {
 		sessionController()->show(Ui::MakeConfirmBox({
-			.title = tr::hoursgram_ThemeChoiceTitle(),
 			.text = tr::hoursgram_ThemeChoiceText(),
 			.confirmed = [] {
 				AyuSettings::getInstance().setClientTheme(1);
@@ -373,6 +372,7 @@ void MainWindow::setupMain(
 			},
 			.confirmText = tr::hoursgram_ThemeHoursGram(tr::now),
 			.cancelText = tr::hoursgram_ThemeTelegram(tr::now),
+			.title = tr::hoursgram_ThemeChoiceTitle(),
 			.strictCancel = true,
 		}));
 	}
