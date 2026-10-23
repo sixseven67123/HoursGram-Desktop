@@ -137,10 +137,10 @@ jobs:
         id: cmake-build-cache
         uses: actions/cache/restore@v6
         with:
-          path: Telegram/out
-          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-${{ github.sha }}
+          path: out
+          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-
+            ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-
 
       - name: Configure HoursGram
         shell: cmd
@@ -157,7 +157,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          CACHE_KEY_PREFIX: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-
+          CACHE_KEY_PREFIX: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-
         run: |
           $headers = @{
             Authorization = "Bearer $env:GH_TOKEN"
@@ -177,8 +177,8 @@ jobs:
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
-          path: Telegram/out
-          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-${{ github.sha }}
+          path: out
+          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-${{ github.sha }}
 
       - name: Upload Windows build
         uses: actions/upload-artifact@v7
