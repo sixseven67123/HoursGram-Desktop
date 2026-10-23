@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: read
 
 concurrency:
@@ -150,8 +151,29 @@ jobs:
         shell: cmd
         run: cmake --build out --config Release --target Telegram --parallel 4 -- /p:CL_MPCount=3
 
+      - name: Remove previous incremental CMake cache
+        if: success() && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CACHE_KEY_PREFIX: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GH_TOKEN"
+            Accept = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/caches?ref=refs%2Fheads%2Fmain&per_page=100"
+          $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers -ErrorAction Stop
+          $oldCaches = $response.actions_caches | Where-Object { $_.key.StartsWith($env:CACHE_KEY_PREFIX) }
+          foreach ($cache in $oldCaches) {
+            $deleteUri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/caches/$($cache.id)"
+            Invoke-RestMethod -Method Delete -Uri $deleteUri -Headers $headers -ErrorAction Stop | Out-Null
+          }
+
       - name: Save incremental CMake outputs
-        if: success()
+        if: success() && github.ref == 'refs/heads/main'
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
