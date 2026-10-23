@@ -132,6 +132,15 @@ jobs:
           path: ${{ env.LIBRARIES_DIR }}
           key: ${{ runner.os }}-hoursgram-x64-libraries-v3-${{ steps.dependency-cache-key.outputs.libraries_hash }}
 
+      - name: Restore incremental CMake outputs
+        id: cmake-build-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: Telegram/out
+          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-
+
       - name: Configure HoursGram
         shell: cmd
         working-directory: Telegram
@@ -140,6 +149,14 @@ jobs:
       - name: Build HoursGram
         shell: cmd
         run: cmake --build out --config Release --target Telegram --parallel 4 -- /p:CL_MPCount=3
+
+      - name: Save incremental CMake outputs
+        if: success()
+        uses: actions/cache/save@v6
+        continue-on-error: true
+        with:
+          path: Telegram/out
+          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v1-${{ github.sha }}
 
       - name: Upload Windows build
         uses: actions/upload-artifact@v7
