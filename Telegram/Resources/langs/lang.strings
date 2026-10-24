@@ -8625,6 +8625,25 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 "ayu_AyuPreferences" = "HorusGram Preferences";
 "hoursgram_Preferences" = "HorusGram Preferences";
+"hoursgram_PlayerTitle" = "Now playing";
+"hoursgram_PlayerIdle" = "Nothing is playing";
+"hoursgram_PlayerUnknownArtist" = "Unknown artist";
+"hoursgram_PlayerUnknownTrack" = "Unknown track";
+"hoursgram_LyricsEmpty" = "No lyrics for this track yet. Attach an .lrc file to see them here.";
+"hoursgram_LyricsAttach" = "Attach lyrics";
+"hoursgram_LyricsFilter" = "Lyrics files (*.lrc *.txt);;All files (*)";
+"hoursgram_AddToPlaylist" = "Add to playlist";
+"hoursgram_Playlists" = "Playlists";
+"hoursgram_PlaylistNew" = "New playlist";
+"hoursgram_PlaylistName" = "Playlist name";
+"hoursgram_PlaylistRename" = "Rename playlist";
+"hoursgram_PlaylistDelete" = "Delete playlist";
+"hoursgram_PlaylistRemoveTrack" = "Remove from playlist";
+"hoursgram_PlaylistEmpty" = "This playlist is empty.";
+"hoursgram_PlaylistsEmpty" = "You have no playlists yet.";
+"hoursgram_PlaylistAdded" = "Added to {name}.";
+"hoursgram_PlaylistAlready" = "This track is already in {name}.";
+"hoursgram_PlaylistTrackMissing" = "Open the chat with this track once to play it from here.";
 "ayu_DocsText" = "Documentation";
 "ayu_CategoryGeneral" = "General";
 "ayu_CategoryAppearance" = "Appearance";

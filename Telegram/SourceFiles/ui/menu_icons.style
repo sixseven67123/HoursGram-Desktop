@@ -123,6 +123,8 @@ menuIconArchiveOpen: icon {{ "menu/archive_open", menuIconColor }};
 menuIconGroups: icon {{ "menu/groups", menuIconColor }};
 menuIconSavedMessages: icon {{ "menu/saved_messages", menuIconColor }};
 menuIconMusic: icon {{ "info/info_media_audio", menuIconColor }};
+menuIconPlaylists: icon {{ "menu/all_media", menuIconColor }};
+menuIconNowPlaying: icon {{ "player/player_mini_full", menuIconColor }};
 menuIconNightMode: icon {{ "menu/night_mode", menuIconColor }};
 menuIconNotifications: icon {{ "menu/info_notifications", menuIconColor }};
 menuIconLock: icon {{ "menu/lock", menuIconColor }};

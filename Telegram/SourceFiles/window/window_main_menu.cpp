@@ -28,6 +28,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/info_memento.h"
 #include "info/profile/info_profile_badge.h"
 #include "settings/settings_common.h"
+#include "hoursgram/music/music_player_box.h"
+#include "hoursgram/music/music_playlists_box.h"
 #include "info/saved/info_saved_music_widget.h"
 #include "info/profile/info_profile_emoji_status_panel.h"
 #include "info/profile/info_profile_icon.h"
@@ -789,6 +791,20 @@ void MainMenu::setupMenu() {
 		)->setClickedCallback([=] {
 			controller->showSection(
 				Info::Saved::MakeMusic(controller->session().user()));
+		});
+
+		addAction(
+			tr::hoursgram_Playlists(),
+			{ &st::menuIconPlaylists }
+		)->setClickedCallback([=] {
+			HoursGram::Music::ShowPlaylists(controller);
+		});
+
+		addAction(
+			tr::hoursgram_PlayerTitle(),
+			{ &st::menuIconNowPlaying }
+		)->setClickedCallback([=] {
+			HoursGram::Music::ShowPlayer(controller);
 		});
 
 		if (settings.showLReadToggleInDrawer()) {
