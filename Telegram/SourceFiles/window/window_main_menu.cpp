@@ -28,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/info_memento.h"
 #include "info/profile/info_profile_badge.h"
 #include "settings/settings_common.h"
+#include "info/saved/info_saved_music_widget.h"
 #include "info/profile/info_profile_emoji_status_panel.h"
 #include "info/profile/info_profile_icon.h"
 #include "info/stories/info_stories_widget.h"
@@ -110,7 +111,7 @@ constexpr auto kPlayStatusLimit = 12;
 
 [[nodiscard]] rpl::producer<TextWithEntities> SetStatusLabel(
 		not_null<Main::Session*> session) {
-	return tr::ayu_AyuPreferences() | rpl::map([](const QString& text) {
+	return tr::hoursgram_Preferences() | rpl::map([](const QString& text) {
 		return tr::link(text);
 	});
 }
@@ -762,6 +763,14 @@ void MainMenu::setupMenu() {
 			{ &st::menuIconSavedMessages }
 		)->setClickedCallback([=] {
 			controller->showPeerHistory(controller->session().user());
+		});
+
+		addAction(
+			tr::lng_all_music(),
+			{ &st::menuIconMusic }
+		)->setClickedCallback([=] {
+			controller->showSection(
+				Info::Saved::MakeMusic(controller->session().user()));
 		});
 
 		if (settings.showLReadToggleInDrawer()) {

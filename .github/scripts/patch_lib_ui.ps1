@@ -93,10 +93,12 @@ if ($fillRect -ge 0) {
 		"`tp.save();",
 		"`tp.setPen(Qt::NoPen);",
 		"`tp.setBrush(color);",
-		"`tp.drawRoundedRect(rect, radius, radius);",
+		"`tp.drawRoundedRect(this->rect(), radius, radius);",
 		"`tp.restore();"
 	))
-} elseif (!$buttons.Contains("`tp.drawRoundedRect(rect, radius, radius);")) {
+} elseif ($buttons.Contains("`tp.drawRoundedRect(rect, radius, radius);")) {
+	$buttons[$buttons.IndexOf("`tp.drawRoundedRect(rect, radius, radius);")] = "`tp.drawRoundedRect(this->rect(), radius, radius);"
+} elseif (!$buttons.Contains("`tp.drawRoundedRect(this->rect(), radius, radius);")) {
 	throw 'SettingsButton background painting is not in the expected form.'
 }
 Write-Lines $buttonsPath $buttons

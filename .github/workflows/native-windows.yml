@@ -135,7 +135,11 @@ jobs:
           }
 
       - name: Save third-party build tools
-        if: always() && steps.dependency-cache-key.outcome == 'success' && steps.dependency-cache-key.outputs.third_party_count != '0'
+        if: >-
+          always() &&
+          steps.dependency-cache-key.outcome == 'success' &&
+          steps.dependency-cache-key.outputs.third_party_count != '0' &&
+          steps.third-party-cache.outputs.cache-matched-key != format('{0}-hoursgram-x64-third-party-v3-{1}', runner.os, steps.dependency-cache-key.outputs.third_party_hash)
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
@@ -143,7 +147,11 @@ jobs:
           key: ${{ runner.os }}-hoursgram-x64-third-party-v3-${{ steps.dependency-cache-key.outputs.third_party_hash }}
 
       - name: Save native libraries
-        if: always() && steps.dependency-cache-key.outcome == 'success' && steps.dependency-cache-key.outputs.libraries_count != '0'
+        if: >-
+          always() &&
+          steps.dependency-cache-key.outcome == 'success' &&
+          steps.dependency-cache-key.outputs.libraries_count != '0' &&
+          steps.native-libraries-cache.outputs.cache-matched-key != format('{0}-hoursgram-x64-libraries-v3-{1}', runner.os, steps.dependency-cache-key.outputs.libraries_hash)
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
@@ -172,7 +180,9 @@ jobs:
 
       - name: Save incremental CMake outputs
         id: save-cmake-build-cache
-        if: success()
+        if: >-
+          success() &&
+          steps.cmake-build-cache.outputs.cache-matched-key != steps.cmake-build-cache.outputs.cache-primary-key
         uses: actions/cache/save@v6
         continue-on-error: true
         with:
@@ -180,7 +190,10 @@ jobs:
           key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-${{ github.ref_name }}-${{ github.sha }}
 
       - name: Remove previous incremental CMake caches for this ref
-        if: success() && steps.save-cmake-build-cache.outcome == 'success'
+        if: >-
+          success() &&
+          (steps.save-cmake-build-cache.outcome == 'success' ||
+          steps.cmake-build-cache.outputs.cache-matched-key == steps.cmake-build-cache.outputs.cache-primary-key)
         continue-on-error: true
         shell: pwsh
         env:

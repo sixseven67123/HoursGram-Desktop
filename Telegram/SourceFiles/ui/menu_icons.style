@@ -122,6 +122,7 @@ menuIconStoriesArchive: icon {{ "menu/stories_archive", menuIconColor }};
 menuIconArchiveOpen: icon {{ "menu/archive_open", menuIconColor }};
 menuIconGroups: icon {{ "menu/groups", menuIconColor }};
 menuIconSavedMessages: icon {{ "menu/saved_messages", menuIconColor }};
+menuIconMusic: icon {{ "info/info_media_audio", menuIconColor }};
 menuIconNightMode: icon {{ "menu/night_mode", menuIconColor }};
 menuIconNotifications: icon {{ "menu/info_notifications", menuIconColor }};
 menuIconLock: icon {{ "menu/lock", menuIconColor }};
