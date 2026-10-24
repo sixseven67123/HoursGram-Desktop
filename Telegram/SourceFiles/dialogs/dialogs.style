@@ -88,6 +88,8 @@ dialogsDateFont: font(13px);
 dialogsDateSkip: 5px;
 
 dialogsRowHeight: 62px;
+dialogsRowRadius: 12px;
+dialogsRowSkip: 6px;
 dialogsFilterPadding: point(7px, 7px);
 dialogsFilterSkip: 4px;
 

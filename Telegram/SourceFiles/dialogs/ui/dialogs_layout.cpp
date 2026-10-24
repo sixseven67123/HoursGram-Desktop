@@ -51,11 +51,11 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_widgets.h"
 #include "styles/style_window.h"
 
-#include <QtGui/QPainterPath>
-
 // AyuGram includes
 #include "ayu/features/filters/filters_controller.h"
 #include "styles/style_ayu_icons.h"
+
+#include <QtGui/QPainterPath>
 
 
 namespace Dialogs::Ui {
@@ -64,16 +64,13 @@ const char kOptionDialogsMuteIcon[] = "dialogs-mute-icon";
 
 namespace {
 
-constexpr auto kRowRadius = 12;
-constexpr auto kRowSkip = 6;
-
 [[nodiscard]] QRect RowRoundedRect(QRect geometry) {
-	const auto skip = std::min(kRowSkip, geometry.width() / 8);
+	const auto skip = std::min(st::dialogsRowSkip, geometry.width() / 8);
 	return geometry.marginsRemoved(QMargins(skip, 0, skip, 0));
 }
 
 [[nodiscard]] int RowRadius(QRect geometry) {
-	return std::min(kRowRadius, geometry.height() / 2);
+	return std::min(st::dialogsRowRadius, geometry.height() / 2);
 }
 
 base::options::toggle DialogsMuteIcon({

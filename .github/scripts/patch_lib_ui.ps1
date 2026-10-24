@@ -31,7 +31,6 @@ if ($anonymousNamespace -lt 0) {
 }
 if (!$buttons.Contains('constexpr auto kSettingsButtonRadius = 14;')) {
 	$buttons.Insert($anonymousNamespace + 1, 'constexpr auto kSettingsButtonRadius = 14;')
-	$buttons.Insert($anonymousNamespace + 2, '')
 }
 
 $eventsInclude = $buttons.IndexOf('#include <QtGui/QtEvents>')
@@ -56,9 +55,10 @@ for ($i = $paintEvent + 1; $paintEvent -ge 0 -and $i -lt $buttons.Count; $i++) {
 if ($paintEvent -lt 0 -or $ripple -lt 0) {
 	throw 'Could not find the SettingsButton ripple paint call.'
 }
-if (!$buttons.Contains("`tconst auto radius = (height() > 28) ? kSettingsButtonRadius : (height() / 2);")) {
+if (!$buttons.Contains("`tconst auto scaled = style::ConvertScale(kSettingsButtonRadius);")) {
 	$beforeRipple = [string[]]@(
-		"`tconst auto radius = (height() > 28) ? kSettingsButtonRadius : (height() / 2);",
+		"`tconst auto scaled = style::ConvertScale(kSettingsButtonRadius);",
+		"`tconst auto radius = (height() > 2 * scaled) ? scaled : (height() / 2);",
 		"`tauto clip = QPainterPath();",
 		"`tclip.addRoundedRect(rect(), radius, radius);",
 		"`tp.save();",
@@ -89,8 +89,10 @@ if ($fillRect -ge 0) {
 	$buttons.RemoveAt($fillRect)
 	$buttons.InsertRange($fillRect, [string[]]@(
 		"`tconst auto color = over ? _st.textBgOver : _st.textBg;",
-		"`tconst auto radius = (rect.height() > 28) ? kSettingsButtonRadius : (rect.height() / 2);",
+		"`tconst auto scaled = style::ConvertScale(kSettingsButtonRadius);",
+		"`tconst auto radius = (rect.height() > 2 * scaled) ? scaled : (rect.height() / 2);",
 		"`tp.save();",
+		"`tauto hq = PainterHighQualityEnabler(p);",
 		"`tp.setPen(Qt::NoPen);",
 		"`tp.setBrush(color);",
 		"`tp.drawRoundedRect(this->rect(), radius, radius);",
@@ -173,7 +175,7 @@ Edit-Text `
 		},
 		@{
 			Old = "namespace Ui::Menu {`nnamespace {`n";
-			New = "namespace Ui::Menu {`nnamespace {`n`nconstexpr auto kHoursGramMenuRadius = 10;`nconstexpr auto kHoursGramMenuMargin = 6;`n`n[[nodiscard]] QRect HoursGramMenuRect(int width, int height) {`n`tconst auto skip = (kHoursGramMenuMargin < (width / 8))`n`t`t? kHoursGramMenuMargin`n`t`t: (width / 8);`n`treturn QRect(skip, 0, width - 2 * skip, height);`n}`n`n[[nodiscard]] int HoursGramMenuRadius(int height) {`n`treturn (kHoursGramMenuRadius < (height / 2))`n`t`t? kHoursGramMenuRadius`n`t`t: (height / 2);`n}`n";
+			New = "namespace Ui::Menu {`nnamespace {`n`nconstexpr auto kHoursGramMenuRadius = 10;`nconstexpr auto kHoursGramMenuMargin = 6;`n`n[[nodiscard]] QRect HoursGramMenuRect(int width, int height) {`n`tconst auto margin = style::ConvertScale(kHoursGramMenuMargin);`n`tconst auto skip = (margin < (width / 8)) ? margin : (width / 8);`n`treturn QRect(skip, 0, width - 2 * skip, height);`n}`n`n[[nodiscard]] int HoursGramMenuRadius(int height) {`n`tconst auto radius = style::ConvertScale(kHoursGramMenuRadius);`n`treturn (radius < (height / 2)) ? radius : (height / 2);`n}`n";
 		},
 		@{
 			Old = "void Action::paintBackground(QPainter &p, bool selected) {`n`tif (selected && _st.itemBgOver->c.alpha() < 255) {`n`t`tp.fillRect(0, 0, width(), _height, _st.itemBg);`n`t}`n`tp.fillRect(`n`t`tQRect(0, 0, width(), _height),`n`t`tselected ? _st.itemBgOver : _st.itemBg);`n}`n";
@@ -182,6 +184,25 @@ Edit-Text `
 		@{
 			Old = "`tpaintBackground(p, selected);`n`tif (enabled) {`n`t`tRippleButton::paintRipple(p, 0, 0);`n`t}`n";
 			New = "`tpaintBackground(p, selected);`n`tif (enabled) {`n`t`tconst auto radius = HoursGramMenuRadius(_height);`n`t`tauto clip = QPainterPath();`n`t`tclip.addRoundedRect(`n`t`t`tHoursGramMenuRect(width(), _height),`n`t`t`tradius,`n`t`t`tradius);`n`t`tp.save();`n`t`tp.setClipPath(clip);`n`t`tRippleButton::paintRipple(p, 0, 0);`n`t`tp.restore();`n`t}`n";
+		})
+
+# Rounder boxes and popup menus.
+Edit-Text `
+	(Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/layers/layers.style') `
+	'boxRadius: 14px;' `
+	@(
+		@{
+			Old = "boxRadius: 6px;`n";
+			New = "boxRadius: 14px;`n";
+		})
+
+Edit-Text `
+	(Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/widgets/widgets.style') `
+	'radius: 12px;' `
+	@(
+		@{
+			Old = "`tradius: 6px;`n`tduration: 150;`n";
+			New = "`tradius: 12px;`n`tduration: 150;`n";
 		})
 
 Write-Output 'Applied HoursGram fonts and rounded menu rows to lib_ui.'
