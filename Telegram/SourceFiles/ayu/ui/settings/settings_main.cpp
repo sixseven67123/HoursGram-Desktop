@@ -70,7 +70,7 @@ void BuildVersionInfo(SectionBuilder &builder) {
 			.widget = object_ptr<Ui::FlatLabel>(
 				ctx.container,
 				rpl::single(
-					QString("HoursGram Desktop v")
+					QString("HorusGram Desktop v")
 					+ QString::fromLatin1(AppVersionStr)),
 				st::boxTitle),
 			.align = style::al_top,
@@ -101,7 +101,7 @@ void BuildCategories(SectionBuilder &builder) {
 	builder.addSubsectionTitle(tr::ayu_CategoriesHeader());
 
 	builder.addSectionButton({
-		.title = rpl::single(QString("HoursGram")),
+		.title = rpl::single(QString("HorusGram")),
 		.targetSection = AyuGhost::Id(),
 		.icon = { &st::menuIconGroupReactions },
 	});
@@ -143,7 +143,7 @@ void BuildLinks(SectionBuilder &builder) {
 		.id = u"hoursgram/source"_q,
 		.title = tr::hoursgram_SourceCode(),
 		.icon = { &st::menuIconIpAddress },
-		.label = rpl::single(QString("HoursGram Desktop")),
+		.label = rpl::single(QString("HorusGram Desktop")),
 		.onClick = [=] {
 			QDesktopServices::openUrl(QString(
 				"https://github.com/sixseven67123/HoursGram-Desktop"));

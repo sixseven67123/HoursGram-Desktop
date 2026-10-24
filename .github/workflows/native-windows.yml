@@ -1,4 +1,4 @@
-name: HoursGram Desktop Windows Build
+name: HorusGram Desktop Windows Build
 
 on:
   push:
@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build HoursGram.exe (x64)
+    name: Build HorusGram (x64)
     runs-on: windows-2022
     timeout-minutes: 360
     env:
@@ -157,12 +157,12 @@ jobs:
             ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-main-
             ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-
 
-      - name: Configure HoursGram
+      - name: Configure HorusGram
         shell: cmd
         working-directory: Telegram
         run: configure.bat x64 -D TDESKTOP_API_ID=2040 -D TDESKTOP_API_HASH=b18441a1ff607e10a989891a5462e627
 
-      - name: Build HoursGram
+      - name: Build HorusGram
         shell: cmd
         run: cmake --build out --config ${{ env.BUILD_CONFIGURATION }} --target Telegram --parallel 4 -- /p:CL_MPCount=3
 
@@ -204,7 +204,7 @@ jobs:
       - name: Upload Windows build
         uses: actions/upload-artifact@v7
         with:
-          name: HoursGram-Windows-x64-${{ env.BUILD_CONFIGURATION }}
+          name: HorusGram-Windows-x64-${{ env.BUILD_CONFIGURATION }}
           path: out/${{ env.BUILD_CONFIGURATION }}/
           if-no-files-found: error
           retention-days: 7

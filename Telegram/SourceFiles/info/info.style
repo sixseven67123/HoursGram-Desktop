@@ -600,6 +600,7 @@ infoProfileButton: SettingsButton(defaultSettingsButton) {
 
 	padding: margins(79px, 10px, 8px, 8px);
 	iconLeft: 22px;
+	radius: 14px;
 
 	toggle: infoProfileToggle;
 	toggleOver: infoProfileToggleOver;

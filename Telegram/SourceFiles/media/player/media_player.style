@@ -96,6 +96,7 @@ mediaPlayerCloseRight: 0px;
 
 mediaPlayerName: FlatLabel(defaultFlatLabel) {
 	maxHeight: 20px;
+	style: semiboldTextStyle;
 }
 mediaPlayerTime: LabelSimple(defaultLabelSimple) {
 	textFg: windowSubTextFg;
@@ -296,7 +297,7 @@ mediaPlayerPlayback: FilledSlider {
 
 mediaPlayerPanelMarginLeft: 10px;
 mediaPlayerPanelMarginBottom: 10px;
-mediaPlayerPanelWidth: 344px;
+mediaPlayerPanelWidth: 380px;
 
 mediaPlayerPanelPlaybackPadding: 8px;
 mediaPlayerPanelPlayback: defaultContinuousSlider;
@@ -307,7 +308,7 @@ mediaPlayerScroll: ScrollArea(defaultSolidScroll) {
 	deltat: 10px;
 	deltab: 10px;
 }
-mediaPlayerListHeightMax: 280px;
+mediaPlayerListHeightMax: 336px;
 mediaPlayerListMarginBottom: 10px;
 
 mediaPlayerFileLayout: OverviewFileLayout(overviewFileLayout) {
