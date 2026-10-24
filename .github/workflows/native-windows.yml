@@ -42,9 +42,9 @@ jobs:
         shell: pwsh
         run: |
           $patchPath = Join-Path $env:GITHUB_WORKSPACE '.github/patches/lib-ui-rounded-settings-button.patch'
-          git -C Telegram/lib_ui apply --check $patchPath
+          git -C Telegram/lib_ui apply --ignore-whitespace --check $patchPath
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git -C Telegram/lib_ui apply $patchPath
+          git -C Telegram/lib_ui apply --ignore-whitespace $patchPath
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Set up Python
