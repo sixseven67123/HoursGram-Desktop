@@ -38,6 +38,15 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Apply HorusGram rounded buttons
+        shell: pwsh
+        run: |
+          $patchPath = Join-Path $env:GITHUB_WORKSPACE '.github/patches/lib-ui-rounded-settings-button.patch'
+          git -C Telegram/lib_ui apply --check $patchPath
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git -C Telegram/lib_ui apply $patchPath
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
@@ -208,3 +217,4 @@ jobs:
           path: out/${{ env.BUILD_CONFIGURATION }}/
           if-no-files-found: error
           retention-days: 7
+
