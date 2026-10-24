@@ -55,8 +55,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ayu/features/filters/filters_controller.h"
 #include "styles/style_ayu_icons.h"
 
-#include <QtGui/QPainterPath>
-
 
 namespace Dialogs::Ui {
 
@@ -504,25 +502,19 @@ void PaintRow(
 	if (swipeTranslation) {
 		p.translate(-swipeTranslation, 0);
 	}
-	const auto rounded = RowRoundedRect(geometry);
-	const auto radius = RowRadius(geometry);
 	p.fillRect(geometry, context.currentBg);
 	if (context.active || context.selected) {
 		auto hq = PainterHighQualityEnabler(p);
+		const auto radius = RowRadius(geometry);
 		p.setPen(Qt::NoPen);
 		p.setBrush(bg);
-		p.drawRoundedRect(rounded, radius, radius);
+		p.drawRoundedRect(RowRoundedRect(geometry), radius, radius);
 	}
 	if (!(flags & Flag::TopicJumpRipple)) {
 		auto ripple = context.active
 			? st::dialogsRippleBgActive
 			: st::dialogsRippleBg;
-		auto clip = QPainterPath();
-		clip.addRoundedRect(rounded, radius, radius);
-		p.save();
-		p.setClipPath(clip);
 		row->paintRipple(p, 0, 0, context.width, &ripple->c);
-		p.restore();
 	}
 
 	if (flags & Flag::SavedMessages) {

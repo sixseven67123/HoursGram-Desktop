@@ -10,7 +10,7 @@ using "ui/basic.style";
 using "ui/widgets/widgets.style";
 using "info/info.style";
 
-profileBg: boxBg;
+profileBg: windowBg;
 
 profileTopBarHeight: topBarHeight;
 

@@ -613,10 +613,6 @@ infoMainButton: SettingsButton(infoProfileButton) {
 }
 infoSharedMediaButton: infoProfileButton;
 
-infoProfileCardPadding: margins(12px, 0px, 12px, 0px);
-infoProfileCardRadius: 14px;
-infoProfileCardSkip: 10px;
-
 infoBlockButton: SettingsButton(infoProfileButton) {
 	textFg: attentionButtonFg;
 	textFgOver: attentionButtonFgOver;

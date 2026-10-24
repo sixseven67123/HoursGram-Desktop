@@ -9,48 +9,25 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "ui/widgets/box_content_divider.h"
 #include "ui/widgets/labels.h"
-#include "ui/wrap/padding_wrap.h"
 #include "ui/wrap/slide_wrap.h"
 #include "ui/wrap/vertical_layout.h"
-#include "ui/painter.h"
-#include "ui/rect_part.h"
 #include "ui/vertical_list.h"
+#include "ui/rect_part.h"
 
 #include "styles/style_info.h"
 
 namespace Info::Profile {
 namespace {
 
-[[nodiscard]] object_ptr<Ui::RpWidget> WrapInCard(
-		not_null<Ui::VerticalLayout*> layout,
-		object_ptr<Ui::RpWidget> widget) {
-	auto result = object_ptr<Ui::PaddingWrap<Ui::RpWidget>>(
-		layout.get(),
-		std::move(widget),
-		st::infoProfileCardPadding);
-	const auto raw = result.data();
-	raw->paintRequest(
-	) | rpl::on_next([=] {
-		const auto inner = raw->wrapped()
-			? raw->wrapped()->geometry()
-			: QRect();
-		if (inner.isEmpty()) {
-			return;
-		}
-		auto p = QPainter(raw);
-		auto hq = PainterHighQualityEnabler(p);
-		const auto radius = st::infoProfileCardRadius;
-		p.setPen(Qt::NoPen);
-		p.setBrush(st::windowBg);
-		p.drawRoundedRect(inner, radius, radius);
-	}, raw->lifetime());
-	return result;
-}
-
 [[nodiscard]] not_null<Ui::SlideWrap<>*> CreatePlainSeparator(
 		not_null<Ui::VerticalLayout*> layout) {
 	auto inner = object_ptr<Ui::VerticalLayout>(layout);
-	Ui::AddSkip(inner.data(), st::infoProfileCardSkip);
+	Ui::AddSkip(inner.data(), st::infoProfileSkip);
+	inner->add(object_ptr<Ui::BoxContentDivider>(
+		inner.data(),
+		st::boxDividerHeight,
+		st::defaultDividerBar));
+	Ui::AddSkip(inner.data(), st::infoProfileSkip);
 	return layout->add(object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
 		layout,
 		std::move(inner)));
@@ -220,7 +197,7 @@ void SectionStack::finalize() {
 		kinds.push_back(row.type);
 		switch (row.type) {
 		case RowType::Block:
-			_layout->add(WrapInCard(_layout, std::move(row.widget)));
+			_layout->add(std::move(row.widget));
 			intrinsic.push_back(shownOrTrue(std::move(row.shown)));
 			break;
 		case RowType::PlainSeparator:
