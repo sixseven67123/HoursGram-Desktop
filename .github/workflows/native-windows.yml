@@ -13,7 +13,7 @@ on:
         options:
           - Debug
           - Release
-        default: Debug
+        default: Release
         required: true
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 360
     env:
-      BUILD_CONFIGURATION: ${{ github.event.inputs.configuration || 'Debug' }}
+      BUILD_CONFIGURATION: ${{ github.event.inputs.configuration || 'Release' }}
 
     steps:
       - name: Check out source and submodules
