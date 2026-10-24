@@ -7,10 +7,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 using "window/window.style";
 
-mainMenuWidth: 274px;
-mainMenuCoverHeight: 134px;
+mainMenuWidth: 284px;
+mainMenuCoverHeight: 176px;
 mainMenuUserpicLeft: 24px;
-mainMenuUserpicTop: 20px;
+mainMenuUserpicTop: 18px;
 mainMenuCloudButton: IconButton {
 	width: 48px;
 	height: 48px;
@@ -27,17 +27,17 @@ mainMenuResetScaleRight: 12px;
 mainMenuResetScaleTop: 2px;
 mainMenuResetScaleIconLeft: 5px;
 mainMenuCoverNameLeft: 26px;
-mainMenuCoverNameTop: 84px;
+mainMenuCoverNameTop: 96px;
 mainMenuCoverStatusLeft: mainMenuCoverNameLeft;
-mainMenuCoverStatusTop: 103px;
+mainMenuCoverStatusTop: 124px;
 mainMenuSkip: 6px;
 mainMenuFooterHeightMin: 80px;
 mainMenu: Menu(defaultMenu) {
 	itemFg: windowBoldFg;
 	itemFgOver: windowBoldFgOver;
 	itemStyle: semiboldTextStyle;
-	itemIconPosition: point(26px, 8px);
-	itemPadding: margins(76px, 13px, 28px, 13px);
+	itemIconPosition: point(20px, 8px);
+	itemPadding: margins(60px, 13px, 24px, 13px);
 	itemToggle: Toggle(defaultMenuToggle) {
 		toggledFg: mainMenuCoverBg;
 	}

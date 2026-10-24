@@ -276,7 +276,13 @@ void Application::run() {
 
 	startLocalStorage();
 
-	style::SetCustomFont(settings().customFontFamily());
+	const auto customFont = settings().customFontFamily();
+	style::SetCustomFont(customFont.isEmpty()
+		? u"Montserrat"_q
+		: customFont);
+	style::SetCustomSemiboldFont(customFont.isEmpty()
+		? u"Montserrat Alternates"_q
+		: QString());
 	style::internal::StartFonts();
 
 	Test::ApplyStartupOverrides();

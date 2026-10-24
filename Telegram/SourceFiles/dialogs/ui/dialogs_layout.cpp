@@ -51,6 +51,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_widgets.h"
 #include "styles/style_window.h"
 
+#include <QtGui/QPainterPath>
+
 // AyuGram includes
 #include "ayu/features/filters/filters_controller.h"
 #include "styles/style_ayu_icons.h"
@@ -61,6 +63,18 @@ namespace Dialogs::Ui {
 const char kOptionDialogsMuteIcon[] = "dialogs-mute-icon";
 
 namespace {
+
+constexpr auto kRowRadius = 12;
+constexpr auto kRowSkip = 6;
+
+[[nodiscard]] QRect RowRoundedRect(QRect geometry) {
+	const auto skip = std::min(kRowSkip, geometry.width() / 8);
+	return geometry.marginsRemoved(QMargins(skip, 0, skip, 0));
+}
+
+[[nodiscard]] int RowRadius(QRect geometry) {
+	return std::min(kRowRadius, geometry.height() / 2);
+}
 
 base::options::toggle DialogsMuteIcon({
 	.id = kOptionDialogsMuteIcon,
@@ -493,12 +507,25 @@ void PaintRow(
 	if (swipeTranslation) {
 		p.translate(-swipeTranslation, 0);
 	}
-	p.fillRect(geometry, bg);
+	const auto rounded = RowRoundedRect(geometry);
+	const auto radius = RowRadius(geometry);
+	p.fillRect(geometry, context.currentBg);
+	if (context.active || context.selected) {
+		auto hq = PainterHighQualityEnabler(p);
+		p.setPen(Qt::NoPen);
+		p.setBrush(bg);
+		p.drawRoundedRect(rounded, radius, radius);
+	}
 	if (!(flags & Flag::TopicJumpRipple)) {
 		auto ripple = context.active
 			? st::dialogsRippleBgActive
 			: st::dialogsRippleBg;
+		auto clip = QPainterPath();
+		clip.addRoundedRect(rounded, radius, radius);
+		p.save();
+		p.setClipPath(clip);
 		row->paintRipple(p, 0, 0, context.width, &ripple->c);
+		p.restore();
 	}
 
 	if (flags & Flag::SavedMessages) {

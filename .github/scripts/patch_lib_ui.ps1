@@ -105,3 +105,83 @@ Write-Lines $buttonsPath $buttons
 
 Write-Output 'Applied 14px HorusGram SettingsButton radius to lib_ui.'
 
+
+function Edit-Text(
+		[string]$Path,
+		[string]$Skip,
+		[hashtable[]]$Replacements) {
+	if (!(Test-Path -LiteralPath $Path)) {
+		throw "The pinned lib_ui checkout is missing $Path."
+	}
+	$text = [System.IO.File]::ReadAllText($Path).Replace("`r`n", "`n")
+	if ($text.Contains($Skip)) {
+		return
+	}
+	foreach ($replacement in $Replacements) {
+		$old = $replacement.Old
+		$new = $replacement.New
+		$index = $text.IndexOf($old)
+		if ($index -lt 0) {
+			throw "Could not find the expected fragment in $Path."
+		}
+		if ($text.IndexOf($old, $index + 1) -ge 0) {
+			throw "The expected fragment is ambiguous in $Path."
+		}
+		$text = $text.Remove($index, $old.Length).Insert($index, $new)
+	}
+	[System.IO.File]::WriteAllText(
+		$Path,
+		$text,
+		[System.Text.UTF8Encoding]::new($false))
+}
+
+# A separate heading family (Montserrat Alternates) for semibold styles.
+Edit-Text `
+	(Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/style/style_core_font.h') `
+	'void SetCustomSemiboldFont(const QString &font);' `
+	@(
+		@{
+			Old = "void SetCustomFont(const QString &font);`n";
+			New = "void SetCustomFont(const QString &font);`nvoid SetCustomSemiboldFont(const QString &font);`n";
+		})
+
+Edit-Text `
+	(Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/style/style_core_font.cpp') `
+	'CustomSemibold' `
+	@(
+		@{
+			Old = "QString Custom;`n";
+			New = "QString Custom;`nQString CustomSemibold;`n";
+		},
+		@{
+			Old = "void SetCustomFont(const QString &font) {`n`tCustom = font;`n}`n";
+			New = "void SetCustomFont(const QString &font) {`n`tCustom = font;`n}`n`nvoid SetCustomSemiboldFont(const QString &font) {`n`tCustomSemibold = font;`n}`n";
+		},
+		@{
+			Old = "`t} else if (overriden) {`n`t`tfont.setFamily(family);`n";
+			New = "`t} else if (overriden) {`n`t`tfont.setFamily(((flags & FontFlag::Bold) && !CustomSemibold.isEmpty())`n`t`t`t? CustomSemibold`n`t`t`t: family);`n";
+		})
+
+# Rounded hover / ripple for every popup and main menu row.
+Edit-Text `
+	(Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/widgets/menu/menu_action.cpp') `
+	'kHoursGramMenuRadius' `
+	@(
+		@{
+			Old = "#include <QtGui/QtEvents>`n";
+			New = "#include <QtGui/QPainterPath>`n#include <QtGui/QtEvents>`n";
+		},
+		@{
+			Old = "namespace Ui::Menu {`nnamespace {`n";
+			New = "namespace Ui::Menu {`nnamespace {`n`nconstexpr auto kHoursGramMenuRadius = 10;`nconstexpr auto kHoursGramMenuMargin = 6;`n`n[[nodiscard]] QRect HoursGramMenuRect(int width, int height) {`n`tconst auto skip = (kHoursGramMenuMargin < (width / 8))`n`t`t? kHoursGramMenuMargin`n`t`t: (width / 8);`n`treturn QRect(skip, 0, width - 2 * skip, height);`n}`n`n[[nodiscard]] int HoursGramMenuRadius(int height) {`n`treturn (kHoursGramMenuRadius < (height / 2))`n`t`t? kHoursGramMenuRadius`n`t`t: (height / 2);`n}`n";
+		},
+		@{
+			Old = "void Action::paintBackground(QPainter &p, bool selected) {`n`tif (selected && _st.itemBgOver->c.alpha() < 255) {`n`t`tp.fillRect(0, 0, width(), _height, _st.itemBg);`n`t}`n`tp.fillRect(`n`t`tQRect(0, 0, width(), _height),`n`t`tselected ? _st.itemBgOver : _st.itemBg);`n}`n";
+			New = "void Action::paintBackground(QPainter &p, bool selected) {`n`tp.fillRect(0, 0, width(), _height, _st.itemBg);`n`tif (!selected) {`n`t`treturn;`n`t}`n`tauto hq = PainterHighQualityEnabler(p);`n`tconst auto radius = HoursGramMenuRadius(_height);`n`tp.setPen(Qt::NoPen);`n`tp.setBrush(_st.itemBgOver);`n`tp.drawRoundedRect(HoursGramMenuRect(width(), _height), radius, radius);`n}`n";
+		},
+		@{
+			Old = "`tpaintBackground(p, selected);`n`tif (enabled) {`n`t`tRippleButton::paintRipple(p, 0, 0);`n`t}`n";
+			New = "`tpaintBackground(p, selected);`n`tif (enabled) {`n`t`tconst auto radius = HoursGramMenuRadius(_height);`n`t`tauto clip = QPainterPath();`n`t`tclip.addRoundedRect(`n`t`t`tHoursGramMenuRect(width(), _height),`n`t`t`tradius,`n`t`t`tradius);`n`t`tp.save();`n`t`tp.setClipPath(clip);`n`t`tRippleButton::paintRipple(p, 0, 0);`n`t`tp.restore();`n`t}`n";
+		})
+
+Write-Output 'Applied HoursGram fonts and rounded menu rows to lib_ui.'

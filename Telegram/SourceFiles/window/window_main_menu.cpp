@@ -483,6 +483,20 @@ MainMenu::MainMenu(
 
 MainMenu::~MainMenu() = default;
 
+int MainMenu::coverNameAvailable(int reserved) const {
+	const auto side = std::max(
+		st::mainMenuCoverNameLeft,
+		_toggleAccounts->rightSkip());
+	return std::max(width() - 2 * side - reserved, 0);
+}
+
+int MainMenu::coverNameLeft(int reserved) const {
+	const auto nameWidth = std::min(
+		_name.maxWidth(),
+		coverNameAvailable(reserved));
+	return (width() - nameWidth - reserved) / 2;
+}
+
 void MainMenu::moveBadge() {
 	const auto badgeWidth = _badge->widget()
 		? _badge->widget()->width()
@@ -501,11 +515,8 @@ void MainMenu::moveBadge() {
 		+ badgeWidth
 		+ exteraGap
 		+ exteraBadgeWidth;
-	const auto available = width()
-		- st::mainMenuCoverNameLeft
-		- _toggleAccounts->rightSkip()
-		- reserved;
-	const auto nameLeft = st::mainMenuCoverNameLeft;
+	const auto available = coverNameAvailable(reserved);
+	const auto nameLeft = coverNameLeft(reserved);
 	const auto nameEnd = nameLeft
 		+ std::min(_name.maxWidth(), available);
 	if (_badge->widget()) {
@@ -669,6 +680,13 @@ void MainMenu::setupSetEmojiStatus() {
 	_setEmojiStatus->overrideLinkClickHandler([=] {
 		_controller->showSettings(Settings::AyuMain::Id());
 	});
+	_setEmojiStatus->widthValue(
+	) | rpl::on_next([=](int width) {
+		_setEmojiStatus->moveToLeft(
+			(this->width() - width) / 2,
+			st::mainMenuCoverStatusTop,
+			this->width());
+	}, _setEmojiStatus->lifetime());
 }
 
 void MainMenu::parentResized() {
@@ -938,13 +956,13 @@ void MainMenu::resizeEvent(QResizeEvent *e) {
 
 void MainMenu::updateControlsGeometry() {
 	_userpicButton->moveToLeft(
-		st::mainMenuUserpicLeft,
+		(width() - _userpicButton->width()) / 2,
 		st::mainMenuUserpicTop);
 	if (_resetScaleButton) {
 		_resetScaleButton->moveToRight(0, 0);
 	}
 	_setEmojiStatus->moveToLeft(
-		st::mainMenuCoverStatusLeft,
+		(width() - _setEmojiStatus->width()) / 2,
 		st::mainMenuCoverStatusTop,
 		width());
 	_toggleAccounts->setGeometry(
@@ -1027,10 +1045,6 @@ void MainMenu::paintEvent(QPaintEvent *e) {
 }
 
 void MainMenu::drawName(Painter &p) {
-	const auto widthText = width()
-		- st::mainMenuCoverNameLeft
-		- _toggleAccounts->rightSkip();
-
 	const auto user = _controller->session().user();
 	if (_nameVersion < user->nameVersion()) {
 		_nameVersion = user->nameVersion();
@@ -1058,9 +1072,9 @@ void MainMenu::drawName(Painter &p) {
 		+ exteraBadgeWidth;
 	_name.drawLeftElided(
 		p,
-		st::mainMenuCoverNameLeft,
+		coverNameLeft(reserved),
 		st::mainMenuCoverNameTop,
-		widthText - reserved,
+		coverNameAvailable(reserved),
 		width());
 }
 

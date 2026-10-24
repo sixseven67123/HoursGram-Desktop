@@ -67,6 +67,9 @@ private:
 		setFocus();
 	}
 
+	[[nodiscard]] int coverNameAvailable(int reserved) const;
+	[[nodiscard]] int coverNameLeft(int reserved) const;
+
 	void moveBadge();
 	void setupUserpicButton();
 	void setupAccounts();

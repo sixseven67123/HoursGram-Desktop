@@ -176,7 +176,43 @@ jobs:
 
       - name: Build HorusGram
         shell: cmd
-        run: cmake --build out --config ${{ env.BUILD_CONFIGURATION }} --target Telegram --parallel 4 -- /p:CL_MPCount=3
+        run: |
+          cmake --build out --config %BUILD_CONFIGURATION% --target Telegram --parallel 4 -- /p:CL_MPCount=3 > "%RUNNER_TEMP%\build.log" 2>&1
+          set BUILD_RESULT=%ERRORLEVEL%
+          type "%RUNNER_TEMP%\build.log"
+          exit /b %BUILD_RESULT%
+
+      - name: Report build errors
+        if: failure()
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'build.log'
+          if (!(Test-Path -LiteralPath $log)) {
+            return
+          }
+          $pattern = ': error |: fatal error |FAILED: |LNK[0-9]{4}'
+          $found = @(Select-String -LiteralPath $log -Pattern $pattern |
+            Select-Object -ExpandProperty Line -First 40)
+          if ($found.Count -eq 0) {
+            $found = @(Get-Content -LiteralPath $log -Tail 40)
+          }
+          '## Build errors' >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          $found >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          foreach ($line in $found) {
+            Write-Output "::error::$line"
+          }
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v7
+        continue-on-error: true
+        with:
+          name: HoursGram-build-log
+          path: ${{ runner.temp }}/build.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Save incremental CMake outputs
         id: save-cmake-build-cache

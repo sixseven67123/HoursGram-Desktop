@@ -2279,6 +2279,7 @@ PRIVATE
     qrc/emoji_preview.qrc
     qrc/telegram/animations.qrc
     qrc/telegram/export.qrc
+    qrc/telegram/fonts.qrc
     qrc/telegram/export_rich.qrc
     qrc/telegram/picker.qrc
     qrc/telegram/telegram.qrc

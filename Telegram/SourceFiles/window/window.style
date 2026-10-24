@@ -85,14 +85,14 @@ notifyFadeRight: icon {{ "fade_horizontal", notificationBg }};
 titleUnreadCounterTop: 6px;
 
 mainMenuUserpic: UserpicButton(defaultUserpicButton) {
-	size: size(48px, 48px);
-	photoSize: 48px;
+	size: size(64px, 64px);
+	photoSize: 64px;
 }
 mainMenuButton: SettingsButton(defaultSettingsButton) {
 	style: semiboldTextStyle;
-	padding: margins(61px, 11px, 20px, 9px);
+	padding: margins(60px, 11px, 24px, 9px);
 	toggleSkip: 19px;
-	iconLeft: 21px;
+	iconLeft: 20px;
 }
 mainMenuAddAccountButton: SettingsButton(mainMenuButton) {
 	iconLeft: 23px;
