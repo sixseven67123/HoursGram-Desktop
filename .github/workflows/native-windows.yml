@@ -2,8 +2,19 @@ name: HoursGram Desktop Windows Build
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
+    inputs:
+      configuration:
+        description: Build configuration for a manual run
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: Debug
+        required: true
 
 permissions:
   actions: write
@@ -11,13 +22,15 @@ permissions:
 
 concurrency:
   group: windows-build-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
-    name: Build HoursGram.exe (x64 Release)
+    name: Build HoursGram.exe (x64)
     runs-on: windows-2022
     timeout-minutes: 360
+    env:
+      BUILD_CONFIGURATION: ${{ github.event.inputs.configuration || 'Debug' }}
 
     steps:
       - name: Check out source and submodules
@@ -138,8 +151,10 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: out
-          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-${{ github.sha }}
+          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
+            ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-${{ github.ref_name }}-
+            ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-main-
             ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-
 
       - name: Configure HoursGram
@@ -149,41 +164,47 @@ jobs:
 
       - name: Build HoursGram
         shell: cmd
-        run: cmake --build out --config Release --target Telegram --parallel 4 -- /p:CL_MPCount=3
+        run: cmake --build out --config ${{ env.BUILD_CONFIGURATION }} --target Telegram --parallel 4 -- /p:CL_MPCount=3
 
-      - name: Remove previous incremental CMake cache
-        if: success() && github.ref == 'refs/heads/main'
+      - name: Save incremental CMake outputs
+        id: save-cmake-build-cache
+        if: success()
+        uses: actions/cache/save@v6
+        continue-on-error: true
+        with:
+          path: out
+          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-${{ github.ref_name }}-${{ github.sha }}
+
+      - name: Remove previous incremental CMake caches for this ref
+        if: success() && steps.save-cmake-build-cache.outcome == 'success'
         continue-on-error: true
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          CACHE_KEY_PREFIX: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-
+          CACHE_KEY_PREFIX: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-${{ github.ref_name }}-
+          CURRENT_CACHE_KEY: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v3-${{ env.BUILD_CONFIGURATION }}-${{ github.ref_name }}-${{ github.sha }}
+          CACHE_REF: ${{ github.ref }}
         run: |
           $headers = @{
             Authorization = "Bearer $env:GH_TOKEN"
             Accept = 'application/vnd.github+json'
             'X-GitHub-Api-Version' = '2022-11-28'
           }
-          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/caches?ref=refs%2Fheads%2Fmain&per_page=100"
+          $encodedRef = [System.Uri]::EscapeDataString($env:CACHE_REF)
+          $uri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/caches?ref=$encodedRef&per_page=100"
           $response = Invoke-RestMethod -Method Get -Uri $uri -Headers $headers -ErrorAction Stop
-          $oldCaches = $response.actions_caches | Where-Object { $_.key.StartsWith($env:CACHE_KEY_PREFIX) }
+          $oldCaches = $response.actions_caches | Where-Object {
+            $_.key.StartsWith($env:CACHE_KEY_PREFIX) -and $_.key -ne $env:CURRENT_CACHE_KEY
+          }
           foreach ($cache in $oldCaches) {
             $deleteUri = "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/caches/$($cache.id)"
             Invoke-RestMethod -Method Delete -Uri $deleteUri -Headers $headers -ErrorAction Stop | Out-Null
           }
 
-      - name: Save incremental CMake outputs
-        if: success() && github.ref == 'refs/heads/main'
-        uses: actions/cache/save@v6
-        continue-on-error: true
-        with:
-          path: out
-          key: ${{ runner.os }}-hoursgram-x64-ninja-msvc2022-v2-${{ github.sha }}
-
       - name: Upload Windows build
         uses: actions/upload-artifact@v7
         with:
-          name: HoursGram-Windows-x64
-          path: out/Release/
+          name: HoursGram-Windows-x64-${{ env.BUILD_CONFIGURATION }}
+          path: out/${{ env.BUILD_CONFIGURATION }}/
           if-no-files-found: error
           retention-days: 7

@@ -9,6 +9,7 @@
 #include "ayu/ayu_settings.h"
 #include "lang_auto.h"
 #include "data/data_peer.h"
+#include "data/data_user.h"
 #include "main/main_session.h"
 #include "styles/style_dialogs.h"
 #include "styles/style_settings.h"
@@ -45,7 +46,7 @@ AvatarCornersPreview::AvatarCornersPreview(
 				emojis += u"🎁"_q;
 			}
 		}
-		const auto subtitle = emojis.isEmpty()
+		auto subtitle = emojis.isEmpty()
 			? rpl::single(tr::hoursgram_ProfilePreview(tr::now))
 			: tr::hoursgram_ProfileGifts(lt_item, rpl::single(emojis));
 		std::move(subtitle) | rpl::on_next([=](QString text) {

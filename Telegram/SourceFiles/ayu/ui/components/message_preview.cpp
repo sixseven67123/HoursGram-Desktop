@@ -9,6 +9,7 @@
 #include "ayu/ayu_settings.h"
 #include "base/unixtime.h"
 #include "data/data_session.h"
+#include "data/data_user.h"
 #include "history/history.h"
 #include "history/history_item.h"
 #include "history/history_item_components.h"

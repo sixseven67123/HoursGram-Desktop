@@ -16,6 +16,7 @@
 #include "ayu/ui/settings/settings_ayu_utils.h"
 #include "ayu/ui/settings/settings_main.h"
 #include "boxes/star_gift_box.h"
+#include "data/data_user.h"
 #include "info/peer_gifts/info_peer_gifts_common.h"
 #include "inline_bots/bot_attach_web_view.h"
 #include "main/main_session.h"

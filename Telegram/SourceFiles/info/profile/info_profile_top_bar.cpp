@@ -3356,7 +3356,7 @@ void TopBar::setupPinnedToTopGifts(
 	const auto requestDone = crl::guard(this, [=](
 			std::vector<Data::SavedStarGift> gifts) {
 		if (!_peer->isSelf()) {
-			showGifts(std::move(gifts), {});
+			showGifts(std::move(gifts), std::vector<Data::StarGift>());
 			return;
 		}
 
@@ -3389,7 +3389,7 @@ void TopBar::setupPinnedToTopGifts(
 			return result;
 		}();
 		if (localGiftIds.empty()) {
-			showGifts(std::move(gifts), {});
+			showGifts(std::move(gifts), std::vector<Data::StarGift>());
 			return;
 		}
 
@@ -3397,7 +3397,7 @@ void TopBar::setupPinnedToTopGifts(
 			Api::PremiumGiftCodeOptions>(_peer);
 		api->requestStarGifts() | rpl::on_error_done(
 			[=](QString) {
-				showGifts(gifts, {});
+				showGifts(gifts, std::vector<Data::StarGift>());
 			},
 			[=] {
 				auto local = std::vector<Data::StarGift>();

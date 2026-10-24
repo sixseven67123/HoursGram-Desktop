@@ -4,7 +4,7 @@ HoursGram Desktop is a native C++/Qt Telegram client fork based on AyuGram Deskt
 
 ## Windows build
 
-The repository includes a GitHub Actions workflow that builds the x64 Windows client and uploads the build output as a workflow artifact. Open the **Actions** tab, select a completed `HoursGram Desktop Windows Build` run, and download the `HoursGram-Windows-x64` artifact. Builds are not published to GitHub Releases automatically.
+The GitHub Actions workflow builds the x64 Windows client in **Debug** for pull requests and pushes to `main`, then uploads the `HoursGram-Windows-x64-Debug` artifact. Debug is the fast configuration for iteration. To make an optimized build, open **Actions → HoursGram Desktop Windows Build → Run workflow** and choose **Release**. Builds are not published to GitHub Releases automatically.
 
 For a local build, follow [the Windows build guide](docs/building-win.md).
 
