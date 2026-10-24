@@ -19,52 +19,21 @@ function Write-Lines([string]$Path, [System.Collections.Generic.List[string]]$Li
 		[System.Text.UTF8Encoding]::new($false))
 }
 
-$stylePath = Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/widgets/widgets.style'
 $buttonsPath = Join-Path $WorkspaceRoot 'Telegram/lib_ui/ui/widgets/buttons.cpp'
-if (!(Test-Path -LiteralPath $stylePath) -or !(Test-Path -LiteralPath $buttonsPath)) {
-	throw 'The pinned lib_ui checkout is missing the SettingsButton sources.'
+if (!(Test-Path -LiteralPath $buttonsPath)) {
+	throw 'The pinned lib_ui checkout is missing buttons.cpp.'
 }
-
-$style = Read-Lines $stylePath
-$settingsIndex = $style.IndexOf('SettingsButton {')
-$defaultIndex = $style.IndexOf('defaultSettingsButton: SettingsButton {')
-if ($settingsIndex -lt 0 -or $defaultIndex -le $settingsIndex) {
-	throw 'Could not find the SettingsButton style declarations in lib_ui.'
-}
-$iconLeftIndex = -1
-for ($i = $settingsIndex + 1; $i -lt $defaultIndex; $i++) {
-	if ($style[$i] -eq "`ticonLeft: pixels;") {
-		$iconLeftIndex = $i
-		break
-	}
-}
-if ($iconLeftIndex -lt 0) {
-	throw 'Could not find the SettingsButton iconLeft field.'
-}
-if ($style[$iconLeftIndex + 1] -ne "`tradius: pixels;") {
-	$style.Insert($iconLeftIndex + 1, "`tradius: pixels;")
-}
-
-$defaultIndex = $style.IndexOf('defaultSettingsButton: SettingsButton {')
-$rightLabelIndex = -1
-for ($i = $defaultIndex + 1; $i -lt $style.Count; $i++) {
-	if ($style[$i] -eq "`trightLabel: defaultSettingsRightLabel;") {
-		$rightLabelIndex = $i
-		break
-	}
-	if ($style[$i] -eq '}') {
-		break
-	}
-}
-if ($rightLabelIndex -lt 0) {
-	throw 'Could not find the default SettingsButton style.'
-}
-if ($style[$rightLabelIndex + 1] -ne "`tradius: 0px;") {
-	$style.Insert($rightLabelIndex + 1, "`tradius: 0px;")
-}
-Write-Lines $stylePath $style
 
 $buttons = Read-Lines $buttonsPath
+$anonymousNamespace = $buttons.IndexOf('namespace {')
+if ($anonymousNamespace -lt 0) {
+	throw 'Could not find the lib_ui anonymous namespace.'
+}
+if (!$buttons.Contains('constexpr auto kSettingsButtonRadius = 14;')) {
+	$buttons.Insert($anonymousNamespace + 1, 'constexpr auto kSettingsButtonRadius = 14;')
+	$buttons.Insert($anonymousNamespace + 2, '')
+}
+
 $eventsInclude = $buttons.IndexOf('#include <QtGui/QtEvents>')
 if ($eventsInclude -lt 0) {
 	throw 'Could not find the Qt events include in lib_ui buttons.cpp.'
@@ -87,22 +56,18 @@ for ($i = $paintEvent + 1; $paintEvent -ge 0 -and $i -lt $buttons.Count; $i++) {
 if ($paintEvent -lt 0 -or $ripple -lt 0) {
 	throw 'Could not find the SettingsButton ripple paint call.'
 }
-if (!$buttons.Contains("`tconst auto rounded = (_st.radius > 0);")) {
+if (!$buttons.Contains("`tconst auto radius = (height() > 28) ? kSettingsButtonRadius : (height() / 2);")) {
 	$beforeRipple = [string[]]@(
-		"`tconst auto rounded = (_st.radius > 0);",
-		"`tif (rounded) {",
-		"`t`tauto clip = QPainterPath();",
-		"`t`tclip.addRoundedRect(rect(), _st.radius, _st.radius);",
-		"`t`tp.save();",
-		"`t`tp.setClipPath(clip);",
-		"`t}"
+		"`tconst auto radius = (height() > 28) ? kSettingsButtonRadius : (height() / 2);",
+		"`tauto clip = QPainterPath();",
+		"`tclip.addRoundedRect(rect(), radius, radius);",
+		"`tp.save();",
+		"`tp.setClipPath(clip);"
 	)
 	$buttons.InsertRange($ripple, $beforeRipple)
 	$ripple += $beforeRipple.Length
 	$buttons.InsertRange($ripple + 1, [string[]]@(
-		"`tif (rounded) {",
-		"`t`tp.restore();",
-		"`t}"
+		"`tp.restore();"
 	))
 }
 
@@ -124,20 +89,17 @@ if ($fillRect -ge 0) {
 	$buttons.RemoveAt($fillRect)
 	$buttons.InsertRange($fillRect, [string[]]@(
 		"`tconst auto color = over ? _st.textBgOver : _st.textBg;",
-		"`tif (_st.radius <= 0) {",
-		"`t`tp.fillRect(rect, color);",
-		"`t`treturn;",
-		"`t}",
+		"`tconst auto radius = (rect.height() > 28) ? kSettingsButtonRadius : (rect.height() / 2);",
 		"`tp.save();",
 		"`tp.setPen(Qt::NoPen);",
 		"`tp.setBrush(color);",
-		"`tp.drawRoundedRect(rect, _st.radius, _st.radius);",
+		"`tp.drawRoundedRect(rect, radius, radius);",
 		"`tp.restore();"
 	))
-} elseif (!$buttons.Contains("`tp.drawRoundedRect(rect, _st.radius, _st.radius);")) {
+} elseif (!$buttons.Contains("`tp.drawRoundedRect(rect, radius, radius);")) {
 	throw 'SettingsButton background painting is not in the expected form.'
 }
 Write-Lines $buttonsPath $buttons
 
-Write-Output 'Applied rounded SettingsButton painting to lib_ui.'
+Write-Output 'Applied 14px HorusGram SettingsButton radius to lib_ui.'
 

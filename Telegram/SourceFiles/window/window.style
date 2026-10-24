@@ -93,7 +93,6 @@ mainMenuButton: SettingsButton(defaultSettingsButton) {
 	padding: margins(61px, 11px, 20px, 9px);
 	toggleSkip: 19px;
 	iconLeft: 21px;
-	radius: 14px;
 }
 mainMenuAddAccountButton: SettingsButton(mainMenuButton) {
 	iconLeft: 23px;
@@ -388,3 +387,4 @@ macCautionIconSize: 16;
 macWindowRoundRadius: 10;
 macWindowShadowTopLeft: icon {{ "mac_window_shadow_top_left", windowShadowFg }};
 macTrayIcon: icon {{ "mac_tray_icon", windowFg }};
+
