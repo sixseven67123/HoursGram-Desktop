@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 10213)
-Total output lines: 1346
-
 /*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
@@ -383,7 +380,555 @@ infoProfileTopBarActionButtonTextSkip: 4px;
 infoProfileTopBarActionButtonFont: font(11px);
 
 infoProfileTopBarActionButtonsPadding: margins(18px, 0px, 18px, 16px);
-infoProfileTopBarActionButtonsHeight: infoProfileTopBarActionButtonSize + infoProfileTopBarActionButtonsPadding.topBottom;…4213 tokens truncated…t(7px, 7px);
+infoProfileTopBarActionButtonsHeight: infoProfileTopBarActionButtonSize + infoProfileTopBarActionButtonsPadding.topBottom;
+
+infoProfileTopBarStep2: infoProfileTopBarHeightMax - infoLayerTopBarHeight;
+infoProfileTopBarStep1: infoProfileTopBarStep2 - infoProfileTopBarActionButtonsHeight;
+
+infoProfileTopBarNoActionsHeightMax: infoProfileTopBarHeightMax - infoProfileTopBarActionButtonSize;
+
+
+infoProfileTopBarBoostFooter: FlatLabel(defaultFlatLabel) {
+	textFg: windowSubTextFg;
+	style: TextStyle(defaultTextStyle) {
+		font: font(11px);
+	}
+	palette: TextPalette(defaultTextPalette) {
+		linkFg: windowBoldFg;
+		selectLinkFg: windowBoldFg;
+	}
+}
+infoProfileTopBarBoostFooterColored: FlatLabel(infoProfileTopBarBoostFooter) {
+	textFg: groupCallVideoSubTextFg;
+	palette: TextPalette(defaultTextPalette) {
+		linkFg: groupCallIconFg;
+		selectLinkFg: groupCallIconFg;
+	}
+}
+
+
+infoMinimalWidth: 324px;
+infoDesiredWidth: 392px;
+infoMinimalLayerMargin: 48px;
+
+InfoProfileCover {
+	height: pixels;
+	photo: UserpicButton;
+	photoLeft: pixels;
+	photoTop: pixels;
+	name: FlatLabel;
+	nameLeft: pixels;
+	nameTop: pixels;
+	status: FlatLabel;
+	statusLeft: pixels;
+	statusTop: pixels;
+	starsRatingLeft: pixels;
+	starsRatingTop: pixels;
+	showLastSeen: RoundButton;
+	showLastSeenPosition: point;
+	showLastSeenVisible: bool;
+	rightSkip: pixels;
+}
+infoProfilePhotoInnerSize: 72px;
+infoProfilePhotoSize: size(
+	infoProfilePhotoInnerSize,
+	infoProfilePhotoInnerSize);
+infoProfileStatus: FlatLabel(defaultFlatLabel) {
+	maxHeight: 18px;
+	textFg: windowSubTextFg;
+}
+infoStatusHiddenIcon: IconEmoji {
+	icon: icon{{ "community/requests_hidden", windowSubTextFg }};
+	padding: margins(0px, 4px, 0px, 0px);
+	useIconColor: false;
+}
+infoProfileCover: InfoProfileCover {
+	height: 108px;
+	photo: UserpicButton(defaultUserpicButton) {
+		size: infoProfilePhotoSize;
+		photoSize: infoProfilePhotoInnerSize;
+	}
+	photoLeft: 19px;
+	photoTop: 18px;
+	name: FlatLabel(defaultFlatLabel) {
+		maxHeight: 24px;
+		textFg: windowBoldFg;
+		style: TextStyle(defaultTextStyle) {
+			font: font(16px semibold);
+		}
+	}
+	nameLeft: 109px;
+	nameTop: 32px;
+	status: infoProfileStatus;
+	statusLeft: 109px;
+	statusTop: 58px;
+	starsRatingLeft: 107px;
+	starsRatingTop: 57px;
+	showLastSeen: RoundButton(defaultActiveButton) {
+		textFg: windowSubTextFg;
+		textFgOver: windowSubTextFg;
+		textBg: windowBgOver;
+		textBgOver: windowBgOver;
+		width: -12px;
+		height: 18px;
+		textTop: 0px;
+		style: TextStyle(defaultTextStyle) {
+			font: font(12px);
+		}
+		ripple: defaultRippleAnimation;
+	}
+	showLastSeenPosition: point(3px, 58px);
+	showLastSeenVisible: true;
+	rightSkip: 20px;
+}
+infoProfileMegagroupCover: InfoProfileCover(infoProfileCover) {
+	status: FlatLabel(infoProfileStatus) {
+		palette: TextPalette(defaultTextPalette) {
+			linkFg: windowSubTextFg;
+		}
+	}
+}
+infoTopicCover: InfoProfileCover(infoProfileMegagroupCover) {
+	height: 77px;
+	photo: UserpicButton(defaultUserpicButton) {
+		size: size(36px, 36px);
+	}
+	photoLeft: 22px;
+	photoTop: 18px;
+	nameLeft: 79px;
+	nameTop: 14px;
+	statusLeft: 79px;
+	statusTop: 38px;
+}
+infoEditContactCover: InfoProfileCover(infoProfileCover) {
+	nameTop: 33px;
+	statusTop: 57px;
+}
+
+infoRatingDeductedBadge: RoundButton(customEmojiTextBadge) {
+	textBg: windowSubTextFg;
+}
+
+infoProfileInaccessibleUserpic: icon {{ "info/inaccessible_userpic", historyPeerUserpicFg }};
+
+infoVerifiedCheck: icon {{ "profile_verified_check", profileVerifiedCheckFg }};
+infoVerifiedCheckPosition: point(4px, 0px);
+infoVerifiedStar: icon {{ "profile_verified_star", profileVerifiedCheckBg }};
+infoPremiumStar: icon {{ "profile_premium", profileVerifiedCheckBg }};
+
+infoPeerBadge: InfoPeerBadge {
+	verified: infoVerifiedStar;
+	verifiedCheck: infoVerifiedCheck;
+	premium: infoPremiumStar;
+	premiumFg: profileVerifiedCheckBg;
+	position: infoVerifiedCheckPosition;
+	sizeTag: 0; // Normal
+}
+
+infoIconFg: windowBoldFg;
+
+infoProfileSkip: 7px;
+
+infoProfileLabeledButtonQr: IconButton(defaultIconButton) {
+	width: 34px;
+	height: 34px;
+	icon: icon {{ "menu/qr_code", windowActiveTextFg }};
+	iconOver: icon {{ "menu/qr_code", windowActiveTextFg }};
+	rippleAreaPosition: point(0px, 0px);
+	rippleAreaSize: 34px;
+	ripple: defaultRippleAnimation;
+}
+infoProfileLabeledButtonQrInset: 5px;
+
+infoIconMediaPhoto: icon {{ "info/info_media_photo", infoIconFg }};
+infoIconMediaVideo: icon {{ "info/info_media_video", infoIconFg }};
+infoIconMediaGif: icon {{ "info/info_media_gif", infoIconFg }};
+infoIconMediaFile: icon {{ "info/info_media_file", infoIconFg }};
+infoIconMediaAudio: icon {{ "info/info_media_audio", infoIconFg }};
+infoIconMediaLink: icon {{ "info/info_media_link", infoIconFg }};
+infoIconMediaGroup: icon {{ "info/info_common_groups", infoIconFg }};
+infoIconMediaChannel: icon {{ "menu/channel", infoIconFg, point(4px, 4px) }};
+infoIconMediaBot: icon {{ "menu/bot", infoIconFg, point(4px, 4px) }};
+infoIconMediaVoice: icon {{ "info/info_media_voice", infoIconFg }};
+infoIconMediaPoll: icon {{ "menu/create_poll", infoIconFg, point(4px, 4px) }};
+infoIconMediaStories: icon {{ "info/info_media_stories", infoIconFg }};
+infoIconMediaSaved: icon {{ "info/info_media_saved", infoIconFg }};
+infoIconMediaStoriesArchive: icon {{ "info/info_stories_archive", infoIconFg }};
+infoIconMediaStoriesRecent: icon {{ "info/info_stories_recent", infoIconFg }};
+infoIconMediaGifts: icon {{ "menu/gift_premium", infoIconFg, point(4px, 4px) }};
+
+infoIconDeleteRed: icon {{ "info/info_delete", attentionButtonFg }};
+infoIconReport: icon {{ "info/info_report", attentionButtonFg }};
+infoIconBlock: icon {{ "info/info_block", attentionButtonFg }};
+infoIconMembers: icon {{ "info/info_members", infoIconFg }};
+infoSharedMediaButtonIconPosition: point(20px, 3px);
+infoGroupMembersIconPosition: point(20px, 10px);
+
+infoOpenApp: RoundButton(defaultActiveButton) {
+	textTop: 11px;
+	height: 40px;
+}
+communityAddChatButton: RoundButton(infoOpenApp) {
+	icon: icon{{ "settings/plus", activeButtonFg }};
+	iconOver: icon{{ "settings/plus", activeButtonFgOver }};
+	iconPosition: point(-10px, 8px);
+}
+communityAddChatButtonMargin: margins(16px, 12px, 16px, 12px);
+communityAddChatNarrowAddedWidth: 10px;
+
+infoPersonalChannelUserpic: UserpicButton(defaultUserpicButton) {
+	size: size(42px, 42px);
+	photoSize: 42px;
+}
+
+infoBlockHeaderLabel: FlatLabel(infoProfileStatus) {
+	textFg: windowBoldFg;
+	style: TextStyle(defaultTextStyle) {
+		font: semiboldFont;
+	}
+}
+infoBlockHeaderPosition: point(79px, 17px);
+
+infoProfileToggle: Toggle(defaultToggle) {
+	untoggledFg: menuIconFg;
+}
+infoProfileToggleOver: Toggle(infoProfileToggle) {
+	untoggledFg: menuIconFgOver;
+}
+infoProfileButton: SettingsButton(defaultSettingsButton) {
+	style: defaultTextStyle;
+
+	padding: margins(79px, 10px, 8px, 8px);
+	iconLeft: 22px;
+
+	toggle: infoProfileToggle;
+	toggleOver: infoProfileToggleOver;
+	toggleSkip: 20px;
+}
+infoMainButton: SettingsButton(infoProfileButton) {
+	textFg: lightButtonFg;
+	textFgOver: lightButtonFgOver;
+	style: semiboldTextStyle;
+	padding: margins(23px, 10px, 8px, 8px);
+}
+infoSharedMediaButton: infoProfileButton;
+
+infoBlockButton: SettingsButton(infoProfileButton) {
+	textFg: attentionButtonFg;
+	textFgOver: attentionButtonFgOver;
+}
+infoCreateDiscussionLinkButton: SettingsButton(infoProfileButton) {
+	padding: margins(74px, 10px, 8px, 8px);
+	textFg: lightButtonFg;
+	textFgOver: lightButtonFgOver;
+}
+infoUnlinkDiscussionLinkButton: SettingsButton(infoCreateDiscussionLinkButton) {
+	textFg: attentionButtonFg;
+	textFgOver: attentionButtonFgOver;
+}
+
+infoMembersHeader: 56px;
+infoMembersList: PeerList(defaultPeerList) {
+	item: PeerListItem(defaultPeerListItem) {
+		photoPosition: point(18px, 6px);
+		namePosition: point(79px, 11px);
+		statusPosition: point(79px, 31px);
+		checkbox: RoundImageCheckbox(defaultPeerListCheckbox) {
+			selectExtendTwice: 1px;
+			imageRadius: 21px;
+			imageSmallRadius: 19px;
+			check: RoundCheckbox(defaultPeerListCheck) {
+				size: 0px;
+			}
+		}
+		nameFgChecked: contactsNameFg;
+	}
+}
+infoMembersButtonPosition: point(12px, 0px);
+infoMembersButton: IconButton(defaultIconButton) {
+	width: 38px;
+	height: 38px;
+	iconPosition: point(-1px, -1px);
+	rippleAreaPosition: point(0px, 0px);
+	rippleAreaSize: 38px;
+	ripple: defaultRippleAnimation;
+}
+infoMembersAddMember: IconButton(infoMembersButton) {
+	icon: icon {{ "info/info_add_member", windowBoldFg }};
+	iconOver: icon {{ "info/info_add_member", windowBoldFg }};
+}
+infoMembersSearch: IconButton(infoMembersButton) {
+	icon: icon {{ "info/info_search", windowBoldFg }};
+	iconOver: icon {{ "info/info_search", windowBoldFg }};
+}
+infoMembersSearchField: InputField(defaultMultiSelectSearchField) {
+}
+infoMembersCancelSearch: CrossButton {
+	width: 44px;
+	height: 44px;
+
+	cross: CrossAnimation {
+		size: 44px;
+		skip: 16px;
+		stroke: 1.5;
+		minScale: 0.3;
+	}
+	crossFg: menuIconFg;
+	crossFgOver: menuIconFgOver;
+	crossPosition: point(0px, 0px);
+
+	duration: 150;
+	loadingPeriod: 1000;
+	ripple: defaultRippleAnimationBgOver;
+}
+infoMembersSearchTop: 15px;
+
+infoMediaHeaderStyle: semiboldTextStyle;
+infoMediaHeaderHeight: 28px;
+infoMediaHeaderPosition: point(14px, 6px);
+infoMediaSkip: 2px;
+infoMediaLeft: 3px;
+infoMediaMargin: margins(0px, 6px, 0px, 2px);
+infoMediaMinGridSize: 82px;
+infoMediaSkeletonMinHeight: 240px;
+infoMediaSkeletonRowHeight: 64px;
+infoMediaSkeletonRowPadding: 12px;
+infoMediaSkeletonBarHeight: 10px;
+infoMediaSkeletonFileThumb: 46px;
+infoMediaSkeletonLinkRow: 56px;
+infoMediaSkeletonLinkThumb: 32px;
+infoMediaSkeletonSoundSize: 42px;
+infoMediaTabsRightSkip: 13px;
+infoMediaGridSizeStep: 16px;
+infoMediaTabsMinBodyWidth: infoMediaMinGridSize + infoMediaSkip + infoMediaSkip + infoMediaTabsRightSkip;
+
+infoProfileTabsStrip: ProfileTabsStrip {
+	height: 48px;
+	margin: margins(8px, 6px, 8px, 6px);
+	skip: 0px;
+	tabPadding: margins(16px, 0px, 16px, 0px);
+	activeSkip: 4px;
+	style: semiboldTextStyle;
+	fg: windowSubTextFg;
+	fgActive: lightButtonFg;
+	bg: windowBg;
+	bgActive: lightButtonBgOver;
+	ripple: RippleAnimation(defaultRippleAnimation) {
+		color: lightButtonBgRipple;
+	}
+	duration: 200;
+}
+infoProfileTabsShadow: BoxShadow {
+	blurRadius: 8px;
+	offset: point(0px, 2px);
+	opacity: 0.18;
+}
+
+infoCommonGroupsMargin: margins(0px, 2px, 0px, 2px);
+infoCommonGroupsListItem: PeerListItem(defaultPeerListItem) {
+	height: 52px;
+	photoSize: 40px;
+	photoPosition: point(16px, 6px);
+	namePosition: point(71px, 15px);
+	nameStyle: TextStyle(defaultTextStyle) {
+		font: font(14px semibold);
+	}
+	statusPosition: point(79px, 31px);
+}
+infoCommonGroupsList: PeerList(infoMembersList) {
+	item: infoCommonGroupsListItem;
+}
+
+managePeerButton: SettingsCountButton {
+	button: SettingsButton(infoProfileButton) {
+		padding: margins(76px, 12px, 76px, 10px);
+	}
+	iconPosition: point(20px, 5px);
+	label: FlatLabel(defaultFlatLabel) {
+		textFg: windowActiveTextFg;
+	}
+	labelPosition: point(25px, 12px);
+}
+
+peerPermissionsButton: SettingsCountButton(managePeerButton) {
+	button: SettingsButton(infoProfileButton) {
+		padding: margins(22px, 12px, 24px, 10px);
+	}
+	iconPosition: point(24px, 5px);
+}
+
+manageGroupButtonInner: SettingsButton(infoProfileButton) {
+	padding: margins(60px, 10px, 24px, 8px);
+}
+manageGroupButton: SettingsCountButton(managePeerButton) {
+	button: manageGroupButtonInner;
+	labelPosition: point(22px, 10px);
+	iconPosition: point(20px, 4px);
+}
+
+manageGroupTopButtonWithText: SettingsCountButton(manageGroupButton) {
+	iconPosition: point(0px, 0px);
+}
+manageGroupTopicsButton: SettingsCountButton(manageGroupTopButtonWithText) {
+	button: SettingsButton(manageGroupButtonInner) {
+		toggle: Toggle(infoProfileToggle) {
+			lockIcon: icon {{ "info/info_rights_lock", menuIconFg }};
+		}
+		toggleOver: Toggle(infoProfileToggleOver) {
+			lockIcon: icon {{ "info/info_rights_lock", menuIconFgOver }};
+		}
+	}
+}
+managePeerColorsButton: SettingsButton(infoProfileButton) {
+	padding: margins(60px, 10px, 48px, 8px);
+}
+
+manageGroupNoIconButtonInner: SettingsButton(infoProfileButton) {
+	padding: margins(25px, 11px, 24px, 8px);
+}
+manageGroupNoIconButton: SettingsCountButton(manageGroupTopButtonWithText) {
+	button: manageGroupNoIconButtonInner;
+	labelPosition: point(22px, 11px);
+	iconPosition: point(0px, 0px);
+}
+
+manageDeleteGroupButton: SettingsCountButton(manageGroupNoIconButton) {
+	button: SettingsButton(manageGroupNoIconButtonInner) {
+		textFg: attentionButtonFg;
+		textFgOver: attentionButtonFg;
+	}
+}
+
+manageGroupAttentionButton: SettingsCountButton(manageGroupButton) {
+	button: SettingsButton(manageGroupButtonInner) {
+		textFg: attentionButtonFg;
+		textFgOver: attentionButtonFg;
+	}
+}
+
+manageGroupReactions: IconButton(defaultIconButton) {
+	width: 24px;
+	height: 36px;
+	icon: icon{{ "menu/add", historyComposeIconFg }};
+	iconOver: icon{{ "menu/add", historyComposeIconFgOver }};
+}
+manageGroupReactionsField: InputField(defaultInputField) {
+	textMargins: margins(1px, 12px, 24px, 8px);
+	placeholderFg: placeholderFg;
+	placeholderFgActive: placeholderFgActive;
+	placeholderFgError: placeholderFgActive;
+	placeholderMargins: margins(1px, 0px, 7px, 0px);
+	placeholderAlign: align(topleft);
+	placeholderScale: 0.;
+	placeholderFont: normalFont;
+	placeholderShift: -50px;
+	style: defaultTextStyle;
+	heightMin: 36px;
+	heightMax: 158px;
+}
+manageGroupReactionsFieldPadding: margins(0px, 0px, 0px, -9px);
+manageGroupReactionsTextSkip: 16px;
+manageGroupReactionsMaxSubtitlePadding: margins(0px, 0px, 0px, -3px);
+
+infoEmptyFg: windowSubTextFg;
+infoEmptyPhoto: icon {{ "info/info_media_photo_empty", infoEmptyFg }};
+infoEmptyVideo: icon {{ "info/info_media_video_empty", infoEmptyFg }};
+infoEmptyAudio: icon {{ "info/info_media_audio_empty", infoEmptyFg }};
+infoEmptyFile: icon {{ "info/info_media_file_empty", infoEmptyFg }};
+infoEmptyVoice: icon {{ "info/info_media_voice_empty", infoEmptyFg }};
+infoEmptyLink: icon {{ "info/info_media_link_empty", infoEmptyFg }};
+infoEmptyIconTop: 120px;
+infoEmptyLabelTop: 40px;
+infoEmptyLabelSkip: 20px;
+infoEmptyLabel: FlatLabel(defaultFlatLabel) {
+	minWidth: 220px;
+	textFg: windowSubTextFg;
+}
+
+infoStoriesAboutArchive: FlatLabel(defaultFlatLabel) {
+	minWidth: 245px;
+	align: align(top);
+	textFg: windowSubTextFg;
+	style: defaultTextStyle;
+}
+infoStoriesAboutArchivePadding: margins(22px, 12px, 22px, 12px);
+
+editPeerBottomButtonsLayoutMargins: margins(0px, 7px, 0px, 0px);
+
+editPeerTopButtonsLayoutSkip: 5px;
+editPeerTopButtonsLayoutSkipToBottom: 5px;
+
+editPeerTopButtonsLayoutSkipCustomBottom: 5px;
+
+editPeerHistoryVisibilityTopSkip: 8px;
+
+editPeerPhotoMargins: margins(22px, 8px, 22px, 8px);
+editPeerTitleMargins: margins(27px, 13px, 22px, 8px);
+editPeerTitleEmojiPosition: point(0px, 23px);
+editPeerTitleField: InputField(defaultInputField) {
+	textMargins: margins(0px, 28px, 30px, 4px);
+}
+editPeerDescription: InputField(defaultInputField) {
+	textBg: transparent;
+	textMargins: margins(0px, 7px, 0px, 7px);
+
+	placeholderFg: placeholderFg;
+	placeholderFgActive: placeholderFgActive;
+	placeholderFgError: placeholderFgActive;
+	placeholderMargins: margins(2px, 0px, 2px, 0px);
+	placeholderScale: 0.;
+	placeholderFont: normalFont;
+
+	border: 0px;
+	borderActive: 0px;
+
+	heightMin: 32px;
+}
+editPeerDescriptionMargins: margins(22px, 3px, 22px, 2px);
+editPeerPrivaciesMargins: margins(15px, 7px, 22px, 0px);
+editPeerPrivacyBottomSkip: 16px;
+editPeerPrivacyLabel: FlatLabel(defaultFlatLabel) {
+	minWidth: 200px;
+	textFg: windowSubTextFg;
+}
+editPeerPrivacyBoxCheckbox: Checkbox(defaultBoxCheckbox) {
+	margin: margins(0px, 8px, 0px, 8px);
+	style: boxTextStyle;
+}
+editPeerPrivacyLabelMargins: margins(42px, 0px, 34px, 0px);
+editPeerPreHistoryLabelMargins: margins(34px, 0px, 34px, 0px);
+editPeerUsernameFieldMargins: margins(22px, 0px, 22px, 0px);
+
+historyTopBarBack: IconButton(infoTopBarBack) {
+	width: 52px;
+}
+topBarHeight: 54px;
+topBarMenuPosition: point(-6px, 45px);
+topBarMenuGroupCallSkip: 20px;
+topBarBack: icon {{ "title_back", lightButtonFg }};
+topBarArrowPadding: margins(39px, 8px, 17px, 8px);
+topBarNameRightPadding: 3px;
+topBarClearButton: RoundButton(defaultLightButton) {
+	width: -18px;
+}
+topBarSearch: IconButton {
+	width: 40px;
+	height: topBarHeight;
+
+	icon: icon {{ "top_bar_search", menuIconFg }};
+	iconOver: icon {{ "top_bar_search", menuIconFgOver }};
+	iconPosition: point(4px, 11px);
+
+	rippleAreaPosition: point(0px, 7px);
+	rippleAreaSize: 40px;
+	ripple: defaultRippleAnimationBgOver;
+}
+topBarCloseChoose: IconButton(topBarSearch) {
+	width: 56px;
+	icon: icon {{ "info/info_close", boxTitleCloseFg }};
+	iconOver: icon {{ "info/info_close", boxTitleCloseFgOver }};
+	iconPosition: point(10px, -1px);
+	rippleAreaPosition: point(7px, 7px);
 }
 topBarSkip: -5px;
 topBarCallSkip: -1px;
@@ -798,4 +1343,3 @@ memberTagPillPadding: margins(5px, -1px, 5px, 0px);
 
 infoSecurityRiskIconSize: 16px;
 infoSecurityRiskIconMargin: margins(0px, 2px, 0px, 0px);
-
